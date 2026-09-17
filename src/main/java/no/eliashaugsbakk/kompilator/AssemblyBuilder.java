@@ -12,18 +12,9 @@ public class AssemblyBuilder {
   StringBuilder rodata;
   StringBuilder data;
 
-
   private final static String exit = """
       mov rax, 60
       xor rdi, rdi
-      syscall
-      """;
-
-  private final static String printHelloWorld = """
-      mov rax, 1
-      mov rdi, 1
-      lea rsi, [hellostring]
-      lea rdx, [hellolen]
       syscall
       """;
 
