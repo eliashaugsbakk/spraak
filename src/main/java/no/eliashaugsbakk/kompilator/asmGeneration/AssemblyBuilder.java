@@ -1,4 +1,4 @@
-package no.eliashaugsbakk.kompilator;
+package no.eliashaugsbakk.kompilator.asmGeneration;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +28,7 @@ public class AssemblyBuilder {
     this.data = new StringBuilder("\n.data\n");
   }
 
-  String createAssembly(List<String> IR) {
+  public String createAssembly(List<String> IR) {
     for (String line : IR) {
       line = line.trim();
 
@@ -72,7 +72,18 @@ public class AssemblyBuilder {
   }
 
   void handlePrint(String line) {
+    /* Takes in a print statement and constructs the assembly
+    example input:
+    print(x)
+     */
     String variableName = line.substring(line.indexOf("(") + 1, line.lastIndexOf(")"));
+
+    int stringLength = 0;
+    try {
+      stringLength = this.stringVariables.get(variableName).length();
+    } catch (RuntimeException e) {
+      IO.println("No variable " + variableName + " initialized in IR.");
+    }
 
     this.text.append(String.format("""
         mov rax, 1
@@ -81,6 +92,6 @@ public class AssemblyBuilder {
         lea rdx, [%d]
         syscall
         
-        """, variableName, this.stringVariables.get(variableName).length()));
+        """, variableName, stringLength));
   }
 }

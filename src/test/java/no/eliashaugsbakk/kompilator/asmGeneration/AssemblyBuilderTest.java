@@ -1,4 +1,4 @@
-package no.eliashaugsbakk.kompilator;
+package no.eliashaugsbakk.kompilator.asmGeneration;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ class AssemblyBuilderTest {
         .intel_syntax noprefix
         .global _start
         .text
-        _start: 
+        _start:
         """);
 
     assert result.contains("""
