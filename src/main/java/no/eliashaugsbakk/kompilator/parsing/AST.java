@@ -3,9 +3,13 @@ package no.eliashaugsbakk.kompilator.parsing;
 import no.eliashaugsbakk.kompilator.parsing.node.ASTNode;
 
 public class AST {
-  ASTNode root;
+  private final ASTNode root;
 
-  AST(ASTNode root) {
+  public AST(ASTNode root) {
     this.root = root;
+  }
+
+  public ASTNode getRoot() {
+    return root;
   }
 }

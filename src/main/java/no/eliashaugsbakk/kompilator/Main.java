@@ -9,6 +9,8 @@ import no.eliashaugsbakk.kompilator.assembleAndLink.AssemblerAndLinker;
 import no.eliashaugsbakk.kompilator.parsing.AST;
 import no.eliashaugsbakk.kompilator.parsing.Parser;
 import no.eliashaugsbakk.kompilator.parsing.ParserException;
+import no.eliashaugsbakk.kompilator.semanticAnalysis.Analyzer;
+import no.eliashaugsbakk.kompilator.semanticAnalysis.SemanticException;
 import no.eliashaugsbakk.kompilator.tokenization.Lexer;
 import no.eliashaugsbakk.kompilator.tokenization.Token;
 
@@ -44,10 +46,17 @@ public class Main {
       ast = new Parser(tokens).parse();
     } catch (ParserException e) {
       IO.println("Error while parsing: " + e.getMessage());
+      System.exit(1);
+    }
+
+    try {
+      new Analyzer(ast).analyze();
+    } catch (SemanticException e) {
+      IO.println("Semantic error: " + e.getMessage());
+      System.exit(1);
     }
 
     // TODO:
-    // new Analyzer(ast).analyze();
     // List<String> IR = new IRGenerator(ast).generate();
 
     List<String> IR = List.of();
