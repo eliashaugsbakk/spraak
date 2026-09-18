@@ -4,6 +4,7 @@ import java.util.List;
 import no.eliashaugsbakk.kompilator.IO.File;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriter;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriterException;
+import no.eliashaugsbakk.kompilator.IRGeneration.IRGenerator;
 import no.eliashaugsbakk.kompilator.asmGeneration.AssemblyBuilder;
 import no.eliashaugsbakk.kompilator.assembleAndLink.AssemblerAndLinker;
 import no.eliashaugsbakk.kompilator.parsing.AST;
@@ -56,15 +57,11 @@ public class Main {
       System.exit(1);
     }
 
-    // TODO:
-    // List<String> IR = new IRGenerator(ast).generate();
-
-    List<String> IR = List.of();
+    List<String> IR = new IRGenerator(ast).generate();
 
     String assembly = new AssemblyBuilder().createAssembly(IR);
 
-    AssemblerAndLinker assemblerAndLinker = new AssemblerAndLinker();
-    assemblerAndLinker.assembleAndLink(inputProgram.fileName(), assembly);
+    new AssemblerAndLinker().assembleAndLink(inputProgram.fileName(), assembly);
 
     System.exit(0);
   }

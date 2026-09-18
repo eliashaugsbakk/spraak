@@ -88,8 +88,8 @@ public class AssemblyBuilder {
     this.text.append(String.format("""
         mov rax, 1
         mov rdi, 1
-        lea rsi, [%s]
-        lea rdx, [%d]
+        lea rsi, %s
+        mov rdx, %d
         syscall
         
         """, variableName, stringLength));

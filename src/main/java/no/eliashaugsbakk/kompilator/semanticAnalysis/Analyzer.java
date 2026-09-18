@@ -1,5 +1,7 @@
 package no.eliashaugsbakk.kompilator.semanticAnalysis;
 
+import static no.eliashaugsbakk.kompilator.tokenization.Keywords.KEYWORDS;
+
 import no.eliashaugsbakk.kompilator.parsing.AST;
 import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
@@ -41,7 +43,7 @@ public class Analyzer {
   }
 
   private void checkFunctionCall(FunctionCall call) throws SemanticException {
-    if (!call.functionName.equals("print")) {
+    if (!KEYWORDS.contains(call.functionName)) {
       throw new SemanticException("unknown function: " + call.functionName);
     }
 

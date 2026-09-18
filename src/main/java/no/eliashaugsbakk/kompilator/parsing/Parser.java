@@ -41,8 +41,8 @@ public class Parser {
       } else if (token.type() == EOF) {
         break;
       } else {
-        IO.println("Unknown token: " + token.value() + ". Skipping...");
-        position++;
+        throw new ParserException(token.line(), token.colum(),
+            "Unexpected token: " + token.value());
       }
     }
 
