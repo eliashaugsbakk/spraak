@@ -24,17 +24,17 @@ class LexerTest {
 
     // tokens.forEach(t-> IO.println(t.type + " : " + t.value));
 
-    assertSame(KEYWORD, tokens.getFirst().type);
-    assertEquals(1, tokens.get(0).line);
-    assertEquals(1, tokens.get(0).colum);
+    assertSame(KEYWORD, tokens.getFirst().type());
+    assertEquals(1, tokens.get(0).line());
+    assertEquals(1, tokens.get(0).colum());
 
-    assertSame(LPAREN, tokens.get(1).type);
+    assertSame(LPAREN, tokens.get(1).type());
 
-    assertSame(STRING, tokens.get(2).type);
-    assertTrue(tokens.get(2).value.contains("Hello, World"));
+    assertSame(STRING, tokens.get(2).type());
+    assertTrue(tokens.get(2).value().contains("Hello, World"));
 
-    assertSame(RPAREN, tokens.get(3).type);
-    assertSame(SEMICOLON, tokens.get(4).type);
-    assertSame(EOF, tokens.get(5).type);
+    assertSame(RPAREN, tokens.get(3).type());
+    assertSame(SEMICOLON, tokens.get(4).type());
+    assertSame(EOF, tokens.get(5).type());
   }
 }

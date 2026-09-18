@@ -6,6 +6,11 @@ import no.eliashaugsbakk.kompilator.IO.FileReaderWriter;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriterException;
 import no.eliashaugsbakk.kompilator.asmGeneration.AssemblyBuilder;
 import no.eliashaugsbakk.kompilator.assembleAndLink.AssemblerAndLinker;
+import no.eliashaugsbakk.kompilator.parsing.AST;
+import no.eliashaugsbakk.kompilator.parsing.Parser;
+import no.eliashaugsbakk.kompilator.parsing.ParserException;
+import no.eliashaugsbakk.kompilator.tokenization.Lexer;
+import no.eliashaugsbakk.kompilator.tokenization.Token;
 
 public class Main {
   public static final String programFileExtension = "spå";
@@ -32,6 +37,18 @@ public class Main {
       IO.println("Could not read input file: " + inputFileName + "\n\n" + e.getMessage());
       System.exit(1);
     }
+
+    List<Token> tokens = new Lexer(inputProgram.fileBody()).tokenize();
+    AST ast = null;
+    try {
+      ast = new Parser(tokens).parse();
+    } catch (ParserException e) {
+      IO.println("Error while parsing: " + e.getMessage());
+    }
+
+    // TODO:
+    // new Analyzer(ast).analyze();
+    // List<String> IR = new IRGenerator(ast).generate();
 
     List<String> IR = List.of();
 

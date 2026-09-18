@@ -30,7 +30,7 @@ public class Lexer {
     this.input = input;
   }
 
-  List<Token> tokenize() {
+  public List<Token> tokenize() {
 
     while (position < input.length()) {
       char current = input.charAt(position);

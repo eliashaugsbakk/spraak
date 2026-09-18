@@ -1,6 +1,6 @@
 package no.eliashaugsbakk.kompilator.tokenization;
 
-enum TokenType {
+public enum TokenType {
   KEYWORD,      // print, var, if, while, function, etc.
   IDENTIFIER,   // variable_1
   STRING,       // "Hello, World!"
