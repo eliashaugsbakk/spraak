@@ -27,6 +27,13 @@
     <artifactId>kompilator</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
+    <scm>
+        <connection>scm:git:https://github.com/eliashaugsbakk/spraak.git</connection>
+        <developerConnection>scm:git:git@github.com:eliashaugsbakk/spraak.git</developerConnection>
+        <url>https://github.com/eliashaugsbakk/spraak</url>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <maven.compiler.source>27</maven.compiler.source>
         <maven.compiler.target>27</maven.compiler.target>

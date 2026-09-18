@@ -36,12 +36,12 @@ class AssemblyBuilderTest {
     builder.stringVariables.put("greeting", "Hello");
 
     // Act
-    builder.handlePrint("print(greeting)");
+    builder.handlePrint("skriv(greeting)");
 
     // Assert
     String result = builder.text.toString();
-    assert result.contains("lea rsi, [greeting]");
-    assert result.contains("lea rdx, [5]"); // "Hello"
+    assert result.contains("lea rsi, greeting");
+    assert result.contains("mov rdx, 5"); // "Hello"
   }
 
   @Test
@@ -52,14 +52,14 @@ class AssemblyBuilderTest {
     builder.stringVariables.put("msg2", "World");
 
     // Act
-    builder.handlePrint("print(msg1)");
-    builder.handlePrint("print(msg2)");
+    builder.handlePrint("skriv(msg1)");
+    builder.handlePrint("skriv(msg2)");
 
     // Assert
     String result = builder.text.toString();
-    assert (result).contains("lea rsi, [msg1]");
-    assert (result).contains("lea rsi, [msg2]");
-    assert (result).contains("lea rdx, [2]");  // "Hi"
-    assert (result).contains("lea rdx, [5]"); // "World"
+    assert (result).contains("lea rsi, msg1");
+    assert (result).contains("lea rsi, msg2");
+    assert (result).contains("mov rdx, 2");  // "Hi"
+    assert (result).contains("mov rdx, 5"); // "World"
   }
 }

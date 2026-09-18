@@ -16,7 +16,7 @@ class LexerTest {
   @Test
   void tokenizeTokenizesCorrectly() {
     String input = """
-        print("Hello, World");
+        skriv("Hello, World");
         """;
 
     Lexer lexer = new Lexer(input);

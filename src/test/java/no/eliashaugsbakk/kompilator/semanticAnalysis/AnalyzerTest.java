@@ -14,7 +14,7 @@ class AnalyzerTest {
 
   @Test
   void validPrintStatementDoesNotThrow() {
-    AST ast = buildAST("print", "hello");
+    AST ast = buildAST("skriv", "hello");
     assertDoesNotThrow(() -> new Analyzer(ast).analyze());
   }
 
