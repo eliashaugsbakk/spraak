@@ -6,7 +6,7 @@ import java.util.List;
 import no.eliashaugsbakk.kompilator.parsing.AST;
 import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
-import no.eliashaugsbakk.kompilator.parsing.node.expression.StringLiteral;
+import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
 import org.junit.jupiter.api.Test;
 

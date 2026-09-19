@@ -1,4 +1,6 @@
-package no.eliashaugsbakk.kompilator.parsing.node.expression;
+package no.eliashaugsbakk.kompilator.parsing.node.expression.literal;
+
+import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
 
 /**
  * Represents a string literal expression (e.g., "Hello, World").
