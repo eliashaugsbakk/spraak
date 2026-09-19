@@ -5,18 +5,21 @@ import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
 
 public class IdentifierDeclaration extends Statement {
   // identifier name: [my_var]: type = 4;
-  final String identifier;
+  public final String identifier;
 
   // identifier type: my_var: [type] = 4;
-  final Type type;
+  public final Type type;
 
   // identifier initialization:  my_var: type [4];
   // may be null: my_var: type?;
-  final Expression expression; // may be null: x: int?;
+  public final Expression expression; // may be null: x: int?;
 
-  public IdentifierDeclaration(String identifier, Type type, Expression expression) {
+  public final boolean mutable;
+
+  public IdentifierDeclaration(String identifier, Type type, Expression expression, boolean mutable) {
     this.identifier = identifier;
     this.type = type;
     this.expression = expression;
+    this.mutable = mutable;
   }
 }

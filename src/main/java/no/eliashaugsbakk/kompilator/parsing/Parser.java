@@ -86,9 +86,12 @@ public class Parser {
     // each statement must either start with a keyword or an identifier
     Token token = tokens.get(current);
 
-    // only keyword implemented is "skriv", so calling parseExpression right away
+    // implemented keywords:
+    // skriv()
+    // set
+    // mut
     if (token.type() == KEYWORD) {
-      return parseExpressionStatement();
+      return parseKeyword();
     }
 
     // must be identifier declaration or an assignment
@@ -102,11 +105,25 @@ public class Parser {
     }
   }
 
+  private Statement parseKeyword() throws ParserException {
+    Token token = tokens.get(current);
+    if (token.value().contentEquals("set")) {
+      return parseIdentifierStatement();
+    } else if (token.value().contentEquals("mut")) {
+      return parseIdentifierStatement();
+    } else if (token.value().contentEquals("skriv")) {
+      return parseExpressionStatement();
+    } else {
+      throw new ParserException(token.line(), token.column(), "unknown keyword: " + token.value());
+    }
+  }
+
   private ExpressionStatement parseExpressionStatement() throws ParserException {
     // this can be any expression used as a statement
     // print(x);
     // 5 + 6;
     // "hello";
+
 
     Expression expression = parseExpression();
     expectSemicolon();
@@ -122,10 +139,19 @@ public class Parser {
     //  - reassigning an existing variable
 
     /*
-    x: string?;             IDENTIFIER, COLON, TYPE, SEMICOLON
-    x: string = "string";   IDENTIFIER, COLON, TYPE, ASSIGN, STRING, SEMICOLON
+    mut x: string?;             IDENTIFIER, COLON, TYPE, SEMICOLON
+    set x: string = "string";   IDENTIFIER, COLON, TYPE, ASSIGN, STRING, SEMICOLON
     x = "string";           IDENTIFIER, ASSIGN, STRING, SEMICOLON
      */
+
+    boolean mutable = false;
+
+    if (tokens.get(current).value().contentEquals("mut")) {
+      mutable = true;
+      current++;
+    } else if (tokens.get(current).value().contentEquals("set")) {
+      current++;
+    }
 
     String identifier = tokens.get(current).value();
     current++;
@@ -134,16 +160,16 @@ public class Parser {
 
     if (next.type() == COLON) {
       // x: string = "hello";
-      return parseDeclaration(identifier);
+      return parseDeclaration(identifier, mutable);
     } else if (next.type() == ASSIGN) {
       // x = "hello";
       return parseAssignment(identifier);
     } else {
-      throw new ParserException(next.line(), next.column(), "Expected : or = after identifier");
+      throw new ParserException(next.line(), next.column(), "Expected : or = after: " + identifier);
     }
   }
 
-  private Statement parseDeclaration(String identifier) throws ParserException {
+  private Statement parseDeclaration(String identifier, boolean mutable) throws ParserException {
     // x: type;
     current++; // skip colon
 
@@ -157,7 +183,7 @@ public class Parser {
     }
 
     expectSemicolon();
-    return new IdentifierDeclaration(identifier, type, initializer);
+    return new IdentifierDeclaration(identifier, type, initializer, mutable);
   }
 
   private Statement parseAssignment(String identifier) throws ParserException {
@@ -247,8 +273,11 @@ public class Parser {
   }
 
   private void expectSemicolon() throws ParserException {
-    if (current >= tokens.size() || tokens.get(current).type() != SEMICOLON) {
+    if (current >= tokens.size()) {
       throw new ParserException(-1, -1, "Expected ;");
+    } else if (tokens.get(current).type() != SEMICOLON) {
+      throw new ParserException(tokens.get(current).line(), tokens.get(current).column(),
+          "Expected: ;");
     }
     current++;
   }
