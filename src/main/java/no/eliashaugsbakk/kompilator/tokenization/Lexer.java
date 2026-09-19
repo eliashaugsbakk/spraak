@@ -2,8 +2,10 @@ package no.eliashaugsbakk.kompilator.tokenization;
 
 import static java.lang.Character.isLetterOrDigit;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_STRING;
+import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_TYPE;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_WORD;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.NORMAL;
+import static no.eliashaugsbakk.kompilator.tokenization.TokenType.ASSIGN;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.EOF;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.IDENTIFIER;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.KEYWORD;
@@ -11,11 +13,14 @@ import static no.eliashaugsbakk.kompilator.tokenization.TokenType.LPAREN;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.RPAREN;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.SEMICOLON;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.STRING;
+import static no.eliashaugsbakk.kompilator.tokenization.TokenType.TYPE;
+import static no.eliashaugsbakk.kompilator.tokenization.TokenType.TYPE_DECLARATION;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Lexer {
+  private char current;
   private int line = 1;
   private int column = 0;
 
@@ -28,13 +33,12 @@ public class Lexer {
 
   public Lexer(String input) {
     this.input = input;
+    this.current = input.charAt(position);
   }
 
   public List<Token> tokenize() {
 
     while (position < input.length()) {
-      char current = input.charAt(position);
-
       if (current == '\n') {
         line++;
         column = 0;
@@ -42,44 +46,80 @@ public class Lexer {
         column++;
       }
 
-      if (state == IN_WORD) {
-        if (!isLetterOrDigit(current) || Character.isWhitespace(current)) {
-          state = NORMAL;
-          characterizeWord();
-        } else {
-          wordBuffer.append(current);
-        }
-      }
-      if (state == NORMAL) {
-        if (!Character.isWhitespace(current)) {
-          if (current == '"') {
-            state = IN_STRING;
-          } else if (isLetterOrDigit(current)) {
-            state = IN_WORD;
-            wordBuffer.append(current);
+      current = input.charAt(position);
+      if (!Character.isWhitespace(current)) {
 
-          } else if (current == '(') {
-            tokens.add(new Token(LPAREN, Character.toString(current), line, column));
-          } else if (current == ')') {
-            tokens.add(new Token(RPAREN, Character.toString(current), line, column));
-          } else if (current == ';') {
-            tokens.add(new Token(SEMICOLON, Character.toString(current), line, column));
-          }
+        if (state == IN_WORD) {
+          inWord();
+        } else if (state == IN_STRING) {
+          inString();
+        } else if (state == IN_TYPE) {
+          inType();
         }
 
-      } else if (state == IN_STRING) {
-        if (current == '"') {
-          state = NORMAL;
-          tokens.add(new Token(STRING, wordBuffer.toString(), line, column));
-          wordBuffer.delete(0, wordBuffer.length());
-        } else {
-          wordBuffer.append(current);
+        if (state == NORMAL) {
+          normal();
         }
       }
       position++;
     }
     tokens.add(new Token(EOF, "End of File", line, column));
+    // tokens.forEach(token -> IO.println(token.type().toString() + ": " + token.value()));
     return tokens;
+  }
+
+  private void normal() {
+    if (current == '"') {
+      state = IN_STRING;
+    } else if (isLetterOrDigit(current)) {
+      state = IN_WORD;
+      wordBuffer.append(current);
+
+    } else if (current == ':') {
+      tokens.add(new Token(TYPE_DECLARATION, ":", line, column));
+      state = IN_TYPE;
+
+    } else if (current == '=') {
+      tokens.add(new Token(ASSIGN, "=", line, column));
+    } else if (current == '(') {
+      tokens.add(new Token(LPAREN, Character.toString(current), line, column));
+    } else if (current == ')') {
+      tokens.add(new Token(RPAREN, Character.toString(current), line, column));
+    } else if (current == ';') {
+      tokens.add(new Token(SEMICOLON, Character.toString(current), line, column));
+    }
+  }
+
+  private void inType() {
+    if (current == '=' || current == ';') {
+      state = NORMAL;
+      tokens.add(new Token(TYPE, wordBuffer.toString(), line, column - wordBuffer.length()));
+      clearWordBuffer();
+    } else {
+      wordBuffer.append(current);
+    }
+  }
+
+  private void inString() {
+    if (current == '"') {
+      position++; // skip closing "
+      current = input.charAt(position);
+      state = NORMAL;
+      tokens.add(new Token(STRING, wordBuffer.toString(), line, column));
+      wordBuffer.delete(0, wordBuffer.length());
+    } else {
+      wordBuffer.append(current);
+    }
+  }
+
+  private void inWord() {
+    if (!isLetterOrDigit(current) && current != '_') {
+      state = NORMAL;
+      characterizeWord();
+    } else {
+      wordBuffer.append(current);
+    }
+
   }
 
   private void characterizeWord() {
@@ -88,6 +128,10 @@ public class Lexer {
     } else {
       tokens.add(new Token(IDENTIFIER, wordBuffer.toString(), line, column - wordBuffer.length()));
     }
+    clearWordBuffer();
+  }
+
+  private void clearWordBuffer() {
     wordBuffer.delete(0, wordBuffer.length());
   }
 }
