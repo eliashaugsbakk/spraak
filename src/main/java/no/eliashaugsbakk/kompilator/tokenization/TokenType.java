@@ -4,10 +4,10 @@ public enum TokenType {
   KEYWORD,          // print, var, if, while, function, etc.
   IDENTIFIER,       // variable_1
   STRING_LITERAL,   // "Hello, World!"
-  COLON,            // : (x[:] int = ...)
+  COLON,            // : (set x[:] int = ...)
   TYPE,             // string, i32, i16?, my_type, ... (? makes nullable)
   ASSIGN,           // =
-  NULLABLE,    // ? (x = string?;)
+  NULLABLE,         // ? (x = string?;)
   LPAREN,           // (
   RPAREN,           // )
   SEMICOLON,        // ;
