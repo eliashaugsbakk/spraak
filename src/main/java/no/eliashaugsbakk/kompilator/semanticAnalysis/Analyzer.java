@@ -1,17 +1,22 @@
 package no.eliashaugsbakk.kompilator.semanticAnalysis;
 
-import static no.eliashaugsbakk.kompilator.tokenization.Keywords.KEYWORDS;
-
+import java.util.HashMap;
+import java.util.Map;
 import no.eliashaugsbakk.kompilator.parsing.AST;
+import no.eliashaugsbakk.kompilator.parsing.Type;
 import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
+import no.eliashaugsbakk.kompilator.parsing.node.expression.Identifier;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
+import no.eliashaugsbakk.kompilator.parsing.node.statement.Assignment;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
+import no.eliashaugsbakk.kompilator.parsing.node.statement.IdentifierDeclaration;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Statement;
 
 public class Analyzer {
   private final AST ast;
+  private Map<String, Symbol> symbolTable = new HashMap<>();
 
   public Analyzer(AST ast) {
     this.ast = ast;
@@ -27,32 +32,162 @@ public class Analyzer {
 
   private void analyzeStatement(Statement stmt) throws SemanticException {
     if (stmt instanceof ExpressionStatement exprStmt) {
-      analyzeExpression(exprStmt.expression);
+      typeOf(exprStmt.expression);
+    } else if (stmt instanceof Assignment assignment) {
+      analyzeAssignment(assignment);
+    } else if (stmt instanceof IdentifierDeclaration decl) {
+      analyzeIdentifierDeclaration(decl);
     } else {
-      // Analyze the statement
-      // NO other statements implemented
+      throw new SemanticException("Unrecognized statement");
     }
   }
 
-  private void analyzeExpression(Expression expr) throws SemanticException {
-    if (expr instanceof FunctionCall call) {
-      checkFunctionCall(call);
-    } else {
-      // analyze the expression
+  /**
+   * Analyzes identifier declaration: set/mut x: type [= value];
+   */
+  private void analyzeIdentifierDeclaration(IdentifierDeclaration decl) throws SemanticException {
+    boolean initialized = decl.initializer != null;
+    boolean nullable = decl.type.nullable;
+    Type declaredType = decl.type;
+
+    // Ensure the type exists
+    // string is the only type implemented, but should look in a type table or something in the future
+    if (!declaredType.type.equals("string")) {
+      throw new SemanticException("Unknown type declaration: " + declaredType.type);
+    }
+
+    // Immutable variables must always be initialized on declaration
+    if (!decl.mutable && !initialized) {
+      throw new SemanticException(
+          "Immutable variable " + decl.identifier + " must be initialized upon declaration.");
+    }
+
+    // If no initializer, ensure type is nullable
+    if (!initialized && !nullable) {
+      throw new SemanticException("Non-nullable type requires initialization");
+    }
+
+    // If initializer exists, validate type matches declared type
+    if (initialized) {
+      Type implementedType = typeOf(decl.initializer);
+      checkAssignable(declaredType, implementedType);
+    }
+
+    // Shadowing is allowed; do not check to see if the symbol already exists
+    symbolTable.put(decl.identifier,
+        new Symbol(decl.identifier, declaredType, decl.mutable, initialized));
+  }
+
+  /**
+   * Analyzes assignment: x = value;
+   */
+  private void analyzeAssignment(Assignment assignment) throws SemanticException {
+    Symbol symbol = symbolTable.get(assignment.identifier);
+
+    // Check existence
+    if (symbol == null) {
+      throw new SemanticException("Variable not declared: " + assignment.identifier);
+    }
+
+    // Check mutability
+    if (!symbol.mutable) {
+      throw new SemanticException("Cannot assign to immutable value: " + assignment.identifier);
+    }
+
+    // Type and Nullability Check
+    Type assignedType = typeOf(assignment.expression);
+    checkAssignable(symbol.type, assignedType);
+
+    // Update symbol state
+    symbol.initialized = true;
+  }
+
+  /**
+   * Analyzes identifier usage (variable reference).
+   */
+  private void analyzeIdentifier(Identifier identifier) throws SemanticException {
+    // Check if identifier is declared
+    if (!symbolTable.containsKey(identifier.name)) {
+      throw new SemanticException("Identifier does not exist: " + identifier.name);
+    }
+
+    // Check if identifier is initialized
+    if (!symbolTable.get(identifier.name).initialized) {
+      throw new SemanticException("Identifier is not initialized: " + identifier.name);
     }
   }
 
-  private void checkFunctionCall(FunctionCall call) throws SemanticException {
-    if (!KEYWORDS.contains(call.functionName)) {
-      throw new SemanticException("unknown function: " + call.functionName);
+  /**
+   * Analyzes function call.
+   */
+  private void analyzeFunctionCall(FunctionCall call) throws SemanticException {
+    // Validate function exists
+    // skriv() is the only implemented function
+    // Should ref. function table in the future
+    if (!call.functionName.equals("skriv")) {
+      throw new SemanticException("Function calls are not supported: " + call.functionName);
     }
 
+    // Validate argument count
     if (call.arguments.size() != 1) {
-      throw new SemanticException("print expects 1 argument, got " + call.arguments.size());
+      throw new SemanticException("skriv() supports only one argument");
     }
 
-    if (!(call.arguments.getFirst() instanceof StringLiteral)) {
-      throw new SemanticException("print expects String argument only");
+    // Validate argument types
+    for (Expression argument : call.arguments) {
+      Type argType = typeOf(argument);
+
+      if (!argType.type.equals("string")) {
+        throw new SemanticException("skriv() only supports string literals");
+      }
+
+      if (argType.nullable) {
+        throw new SemanticException("Cannot print nullable string: " + argType.type + "?.");
+      }
     }
+  }
+
+  private void checkAssignable(Type target, Type value) throws SemanticException {
+    if (!target.type.equals(value.type)) {
+      throw new SemanticException(
+          "Type mismatch: expected " + target.type + ", found " + value.type);
+    }
+    if (value.nullable && !target.nullable) {
+      throw new SemanticException(
+          "Cannot assign nullable " + value.type + " to non-nullable " + target.type);
+    }
+  }
+
+  /**
+   * Analyzes an expression, ensures all identifiers are declared and initialized, recursively
+   * validates sub-expressions, and returns the resulting Type.
+   */
+  private Type typeOf(Expression expr) throws SemanticException {
+    switch (expr) {
+      case null -> throw new SemanticException("Expression cannot be null");
+      case StringLiteral stringLiteral -> {
+        return new Type("string", false);
+      }
+      case Identifier id -> {
+        Symbol symbol = symbolTable.get(id.name);
+
+        if (symbol == null) {
+          throw new SemanticException("Undeclared identifier: " + id.name);
+        }
+        if (!symbol.initialized) {
+          throw new SemanticException("Identifier is not initialized: " + id.name);
+        }
+
+        return symbol.type;
+      }
+      case FunctionCall call -> {
+        analyzeFunctionCall(call);
+        return call.getReturnType();
+      }
+      default -> {
+      }
+    }
+
+    throw new SemanticException("Unknown expression type: " + expr.getClass().getSimpleName());
   }
 }

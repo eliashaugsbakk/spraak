@@ -12,14 +12,14 @@ public class IdentifierDeclaration extends Statement {
 
   // identifier initialization:  my_var: type [4];
   // may be null: my_var: type?;
-  public final Expression expression; // may be null: x: int?;
+  public final Expression initializer; // may be null: x: int?;
 
   public final boolean mutable;
 
-  public IdentifierDeclaration(String identifier, Type type, Expression expression, boolean mutable) {
+  public IdentifierDeclaration(String identifier, Type type, Expression initializer, boolean mutable) {
     this.identifier = identifier;
     this.type = type;
-    this.expression = expression;
+    this.initializer = initializer;
     this.mutable = mutable;
   }
 }

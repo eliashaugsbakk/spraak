@@ -66,7 +66,7 @@ public class Lexer {
     }
 
     tokens.add(new Token(EOF, "End of File", line, column));
-    tokens.forEach(token -> IO.println(token.type().toString() + ": " + token.value()));
+    //tokens.forEach(token -> IO.println(token.type().toString() + ": " + token.value()));
     return tokens;
   }
 
@@ -131,7 +131,7 @@ public class Lexer {
   }
 
   private void inWord() {
-    if (Character.isWhitespace(current) || current == ':' || current == '(' || current == ')') {
+    if (!isWordCharacter(current)) {
       state = NORMAL;
       characterizeWord();
     } else {

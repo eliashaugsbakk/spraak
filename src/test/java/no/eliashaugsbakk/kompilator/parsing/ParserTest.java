@@ -20,7 +20,7 @@ class ParserTest {
   @Test
   void validSyntaxBuildsCorrectTree() throws ParserException {
     List<Token> tokens = List.of(
-        new Token(KEYWORD, "print", 1, 0),
+        new Token(KEYWORD, "skriv", 1, 0),
         new Token(LPAREN, "(", 1, 5),
         new Token(STRING_LITERAL, "Hello", 1, 6),
         new Token(RPAREN, ")", 1, 13),
@@ -39,7 +39,7 @@ class ParserTest {
     assertInstanceOf(FunctionCall.class, stmt.expression);
 
     FunctionCall call = (FunctionCall) stmt.expression;
-    assertEquals("print", call.functionName);
+    assertEquals("skriv", call.functionName);
     assertEquals(1, call.arguments.size());
     assertEquals("Hello", ((StringLiteral) call.arguments.getFirst()).value);
   }

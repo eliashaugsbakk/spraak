@@ -4,7 +4,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
 
 public class Assignment extends Statement {
   public final String identifier;
-  final Expression expression;
+  public final Expression expression;
 
   public Assignment(String identifier, Expression expression) {
     this.identifier = identifier;

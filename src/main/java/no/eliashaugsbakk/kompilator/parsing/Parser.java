@@ -108,9 +108,11 @@ public class Parser {
   private Statement parseKeyword() throws ParserException {
     Token token = tokens.get(current);
     if (token.value().contentEquals("set")) {
-      return parseIdentifierStatement();
+      current++; // consume "set"
+      return parseDeclaration(false);
     } else if (token.value().contentEquals("mut")) {
-      return parseIdentifierStatement();
+      current++; // consume "mut"
+      return parseDeclaration(true);
     } else if (token.value().contentEquals("skriv")) {
       return parseExpressionStatement();
     } else {
@@ -130,60 +132,50 @@ public class Parser {
     return new ExpressionStatement(expression);
   }
 
-
-
   private Statement parseIdentifierStatement() throws ParserException {
-    // this is either:
-    //  - declaration of a new variable with an associated value
-    //  - declaration of a new variable without an associated value
-    //  - reassigning an existing variable
-
-    /*
-    mut x: string?;             IDENTIFIER, COLON, TYPE, SEMICOLON
-    set x: string = "string";   IDENTIFIER, COLON, TYPE, ASSIGN, STRING, SEMICOLON
-    x = "string";           IDENTIFIER, ASSIGN, STRING, SEMICOLON
-     */
-
-    boolean mutable = false;
-
-    if (tokens.get(current).value().contentEquals("mut")) {
-      mutable = true;
-      current++;
-    } else if (tokens.get(current).value().contentEquals("set")) {
-      current++;
-    }
-
     String identifier = tokens.get(current).value();
-    current++;
+    current++; // consume identifier
 
     Token next = tokens.get(current);
 
-    if (next.type() == COLON) {
-      // x: string = "hello";
-      return parseDeclaration(identifier, mutable);
-    } else if (next.type() == ASSIGN) {
-      // x = "hello";
+    if (next.type() == ASSIGN) {
       return parseAssignment(identifier);
+    } else if (next.type() == LPAREN) {
+      // Future expansion: standalone function calls like `doSomething();`
+      current--; // rewind to identifier
+      Expression expr = parseFunctionCall();
+      expectSemicolon();
+      return new ExpressionStatement(expr);
     } else {
-      throw new ParserException(next.line(), next.column(), "Expected : or = after: " + identifier);
+      throw new ParserException(next.line(), next.column(), "Unexpected token after identifier: " + next.value());
     }
   }
 
-  private Statement parseDeclaration(String identifier, boolean mutable) throws ParserException {
-    // x: type;
-    current++; // skip colon
+  private Statement parseDeclaration(boolean isMutable) throws ParserException {
+    Token nameToken = tokens.get(current);
+    if (nameToken.type() != IDENTIFIER) {
+      throw new ParserException(nameToken.line(), nameToken.column(),
+          "Expected identifier after declaration keyword, got: " + nameToken.value());
+    }
+    String identifier = nameToken.value();
+    current++; // consume identifier
+
+    if (tokens.get(current).type() != COLON) {
+      throw new ParserException(tokens.get(current).line(), tokens.get(current).column(),
+          "Expected : after identifier in declaration");
+    }
+    current++; // skip :
 
     Type type = parseType();
     Expression initializer = null;
 
-    // x: type = "hello";
     if (tokens.get(current).type() == ASSIGN) {
       current++; // skip =
       initializer = parseExpression();
     }
 
     expectSemicolon();
-    return new IdentifierDeclaration(identifier, type, initializer, mutable);
+    return new IdentifierDeclaration(identifier, type, initializer, isMutable);
   }
 
   private Statement parseAssignment(String identifier) throws ParserException {
