@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import no.eliashaugsbakk.kompilator.IO.File;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriter;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriterException;
+import no.eliashaugsbakk.kompilator.Main;
 
 public class AssemblerAndLinker {
   private final FileReaderWriter fileReaderWriter;
@@ -45,19 +46,18 @@ public class AssemblerAndLinker {
     }
 
     // Clean up
-    /*
-    try {
-      fileReaderWriter.deleteFile(assemblyFileName);
-    } catch (FileReaderWriterException e) {
-      IO.println("err: Could not delete assembly file: " + e.getMessage());
+    if (!Main.VERBOSE) {
+      try {
+        fileReaderWriter.deleteFile(assemblyFileName);
+      } catch (FileReaderWriterException e) {
+        IO.println("err: Could not delete assembly file: " + e.getMessage());
+      }
+      try {
+        fileReaderWriter.deleteFile(assembledFileName);
+      } catch (FileReaderWriterException e) {
+        IO.println("err: Could not delete assembled file: " + e.getMessage());
+      }
     }
-    try {
-      fileReaderWriter.deleteFile(assembledFileName);
-    } catch (FileReaderWriterException e) {
-      IO.println("err: Could not delete assembled file: " + e.getMessage());
-    }
-
-     */
   }
 
   private static void runProcess(ProcessBuilder processBuilder)

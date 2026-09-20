@@ -5,7 +5,7 @@ import no.eliashaugsbakk.kompilator.parsing.Type;
 class Symbol {
   final String name;
   final Type type;
-  boolean mutable;
+  final boolean mutable;
   boolean initialized;
 
   Symbol(String name, Type type, boolean mutable, boolean initialized) {

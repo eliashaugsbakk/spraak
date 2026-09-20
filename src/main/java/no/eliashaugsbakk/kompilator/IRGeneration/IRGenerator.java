@@ -29,7 +29,7 @@ public class IRGenerator {
   }
 
   public List<Instruction> generate() {
-    Program program = (Program) ast.getRoot();
+    Program program = (Program) ast.root();
 
     for (Statement stmt : program.statements) {
       generateStatement(stmt);

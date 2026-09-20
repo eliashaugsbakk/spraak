@@ -1,7 +1,6 @@
 package no.eliashaugsbakk.kompilator.tokenization;
 
 public enum TokenType {
-  COMMENT,          // // this is a comment
   KEYWORD,          // print, var, if, while, function, etc.
   IDENTIFIER,       // variable_1
   STRING_LITERAL,   // "Hello, World!"

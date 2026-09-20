@@ -16,14 +16,14 @@ import no.eliashaugsbakk.kompilator.parsing.node.statement.Statement;
 
 public class Analyzer {
   private final AST ast;
-  private Map<String, Symbol> symbolTable = new HashMap<>();
+  private final Map<String, Symbol> symbolTable = new HashMap<>();
 
   public Analyzer(AST ast) {
     this.ast = ast;
   }
 
   public void analyze() throws SemanticException {
-    Program program = (Program) ast.getRoot();
+    Program program = (Program) ast.root();
 
     for (Statement stmt : program.statements) {
       analyzeStatement(stmt);
@@ -31,14 +31,11 @@ public class Analyzer {
   }
 
   private void analyzeStatement(Statement stmt) throws SemanticException {
-    if (stmt instanceof ExpressionStatement exprStmt) {
-      typeOf(exprStmt.expression);
-    } else if (stmt instanceof Assignment assignment) {
-      analyzeAssignment(assignment);
-    } else if (stmt instanceof IdentifierDeclaration decl) {
-      analyzeIdentifierDeclaration(decl);
-    } else {
-      throw new SemanticException("Unrecognized statement");
+    switch (stmt) {
+      case ExpressionStatement exprStmt -> typeOf(exprStmt.expression);
+      case Assignment assignment -> analyzeAssignment(assignment);
+      case IdentifierDeclaration decl -> analyzeIdentifierDeclaration(decl);
+      case null, default -> throw new SemanticException("Unrecognized statement");
     }
   }
 
@@ -103,21 +100,6 @@ public class Analyzer {
   }
 
   /**
-   * Analyzes identifier usage (variable reference).
-   */
-  private void analyzeIdentifier(Identifier identifier) throws SemanticException {
-    // Check if identifier is declared
-    if (!symbolTable.containsKey(identifier.name)) {
-      throw new SemanticException("Identifier does not exist: " + identifier.name);
-    }
-
-    // Check if identifier is initialized
-    if (!symbolTable.get(identifier.name).initialized) {
-      throw new SemanticException("Identifier is not initialized: " + identifier.name);
-    }
-  }
-
-  /**
    * Analyzes function call.
    */
   private void analyzeFunctionCall(FunctionCall call) throws SemanticException {
@@ -165,7 +147,7 @@ public class Analyzer {
   private Type typeOf(Expression expr) throws SemanticException {
     switch (expr) {
       case null -> throw new SemanticException("Expression cannot be null");
-      case StringLiteral stringLiteral -> {
+      case StringLiteral _ -> {
         return new Type("string", false);
       }
       case Identifier id -> {

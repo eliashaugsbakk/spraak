@@ -30,9 +30,9 @@ class ParserTest {
     AST ast = new Parser(tokens).parse();
 
     // Verify tree structure
-    assertNotNull(ast.getRoot());
-    assertInstanceOf(Program.class, ast.getRoot());
-    Program program = (Program) ast.getRoot();
+    assertNotNull(ast.root());
+    assertInstanceOf(Program.class, ast.root());
+    Program program = (Program) ast.root();
     assertEquals(1, program.statements.size());
 
     ExpressionStatement stmt = (ExpressionStatement) program.statements.getFirst();

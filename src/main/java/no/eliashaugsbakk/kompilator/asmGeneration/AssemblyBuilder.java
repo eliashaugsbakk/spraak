@@ -9,16 +9,16 @@ import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Call;
 import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Instruction;
 
 public class AssemblyBuilder {
-  Map<String, StringVar> stringVariables = new HashMap<>();
+  final Map<String, StringVar> stringVariables = new HashMap<>();
 
   record StringVar(String value, boolean mutable) {
   }
 
-  StringBuilder finalAssembly;
-  StringBuilder text;
-  StringBuilder rodata;
-  StringBuilder data;
-  StringBuilder bss;
+  final StringBuilder finalAssembly;
+  final StringBuilder text;
+  final StringBuilder rodata;
+  final StringBuilder data;
+  final StringBuilder bss;
 
   private final static String exit = """
       mov rax, 60

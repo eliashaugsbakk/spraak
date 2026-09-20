@@ -8,7 +8,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
  *    function call.
  */
 public class ExpressionStatement extends Statement {
-  public Expression expression;
+  public final Expression expression;
   public ExpressionStatement(Expression expression) {
     this.expression = expression;
   }
