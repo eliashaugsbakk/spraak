@@ -3,14 +3,22 @@ package no.eliashaugsbakk.kompilator.asmGeneration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Alloc;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Assign;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Call;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Instruction;
 
 public class AssemblyBuilder {
-  Map<String, String> stringVariables = new HashMap<>();
+  Map<String, StringVar> stringVariables = new HashMap<>();
+
+  record StringVar(String value, boolean mutable) {
+  }
 
   StringBuilder finalAssembly;
   StringBuilder text;
   StringBuilder rodata;
   StringBuilder data;
+  StringBuilder bss;
 
   private final static String exit = """
       mov rax, 60
@@ -26,66 +34,109 @@ public class AssemblyBuilder {
     this.rodata = new StringBuilder("\n.section .rodata\n");
     // Global initialized variables, Read - Write
     this.data = new StringBuilder("\n.data\n");
+    // Global uninitialized variables, Read - Write
+    this.bss = new StringBuilder("\n.section .bss\n");
   }
 
-  public String createAssembly(List<String> IR) {
-    for (String line : IR) {
-      line = line.trim();
-
-      if (line.startsWith("print")) {
-        handlePrint(line);
-      } else if (line.contains("=")) {
-        handleAssignment(line);
+  public String createAssembly(List<Instruction> IR) {
+    for (Instruction inst : IR) {
+      if (inst instanceof Alloc alloc) {
+        handleAlloc(alloc);
+      } else if (inst instanceof Assign assign) {
+        handleAssign(assign);
+      } else if (inst instanceof Call call) {
+        handleCall(call);
       }
     }
+
     this.text.append(exit);
+
     this.finalAssembly.append(text);
     this.finalAssembly.append(rodata);
     this.finalAssembly.append(data);
+    this.finalAssembly.append(bss);
+
     return this.finalAssembly.toString();
   }
 
-  private void handleAssignment(String line) {
-    /* Example IR:
-    variable_name: type = data
-    str1: string = "Hello world"
-     */
-    String name = line.substring(0, line.indexOf(":"));
+  private void handleAssign(Assign assign) {
+    String reassignLabel = assign.name() + "_reassign";
+    this.stringVariables.put(assign.name(), new StringVar(assign.value(), true));
 
-    String dataType = line.substring(line.indexOf(":") + 2, line.indexOf("=") - 1);
-
-    String value = line.substring(line.indexOf("=") + 2);
-
-    if (dataType.contains("string")) {
-      assignString(name, value);
-    } else {
-      IO.println("err: Unknown data type: " + dataType);
-    }
-  }
-
-  private void assignString(String name, String value) {
-    value = value.substring(1, value.length() - 1);
     this.rodata.append(String.format("""
         %s: .ascii "%s"
-        """, name, value));
-    this.stringVariables.put(name, value);
-  }
-
-  void handlePrint(String line) {
-    /* Takes in a print statement and constructs the assembly
-    example input:
-    print(x)
-     */
-    String variableName = line.substring(line.indexOf("(") + 1, line.lastIndexOf(")"));
-
-    int stringLength = 0;
-    try {
-      stringLength = this.stringVariables.get(variableName).length();
-    } catch (RuntimeException e) {
-      IO.println("No variable " + variableName + " initialized in IR.");
-    }
+        """, reassignLabel, assign.value()));
 
     this.text.append(String.format("""
+        lea rax, [rip + %s]
+        mov [rip + %s], rax
+        """, reassignLabel, assign.name()));
+  }
+
+  private void handleAlloc(Alloc alloc) {
+    this.stringVariables.put(alloc.name(), new StringVar(alloc.initializer(), alloc.mutable()));
+    if (alloc.mutable()) {
+      handleAllocMut(alloc);
+    } else {
+      handleAllocRO(alloc);
+    }
+  }
+
+  private void handleAllocMut(Alloc alloc) {
+    if (alloc.type() == null) {
+      this.bss.append(String.format("""
+          %s: .skip 8
+          """, alloc.name()));
+    } else if (alloc.type().equals("string")) {
+      String pointer = alloc.name() + "_ptr";
+      this.rodata.append(String.format("""
+          %s: .ascii "%s"
+          """, pointer, alloc.initializer()));
+      this.data.append(String.format("""
+          %s: .quad %s
+          """, alloc.name(), pointer));
+    } else {
+      throw new AssemblyBuilderException("Not a supported type");
+    }
+  }
+
+  private void handleAllocRO(Alloc alloc) {
+    if (alloc.type().equals("string")) {
+      this.rodata.append(String.format("""
+          %s: .ascii "%s"
+          """, alloc.name(), alloc.initializer()));
+    } else {
+      throw new AssemblyBuilderException("Not a supported type to skriv");
+    }
+  }
+
+  private void handleCall(Call call) {
+    if (call.fn().equals("skriv")) {
+      handlePrint(call);
+    } else {
+      throw new AssemblyBuilderException("unknown call type: " + call.fn());
+    }
+  }
+
+  void handlePrint(Call call) {
+    if (call.args().size() != 1) {
+      throw new AssemblyBuilderException("Print only supports one argument");
+    }
+    String variableName = call.args().getFirst();
+    StringVar var = this.stringVariables.get(variableName);
+    int stringLength = var.value().length();
+
+    if (var.mutable()) {
+      this.text.append(String.format("""
+        mov rsi, [rip + %s]
+        mov rax, 1
+        mov rdi, 1
+        mov rdx, %d
+        syscall
+        
+        """, variableName, stringLength));
+    } else {
+      this.text.append(String.format("""
         mov rax, 1
         mov rdi, 1
         lea rsi, %s
@@ -93,5 +144,6 @@ public class AssemblyBuilder {
         syscall
         
         """, variableName, stringLength));
+    }
   }
 }

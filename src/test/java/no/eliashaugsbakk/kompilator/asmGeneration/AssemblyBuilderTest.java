@@ -1,65 +1,71 @@
 package no.eliashaugsbakk.kompilator.asmGeneration;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Call;
 import org.junit.jupiter.api.Test;
 
 class AssemblyBuilderTest {
 
   @Test
   void boilerplateGetsGenerated() {
-    // Setup
     AssemblyBuilder builder = new AssemblyBuilder();
 
-    // Act
-
-    // Assert
     String result = builder.createAssembly(List.of());
-    assert result.contains("""
-        .intel_syntax noprefix
-        .global _start
-        .text
-        _start:
-        """);
 
-    assert result.contains("""
-        mov rax, 60
-        xor rdi, rdi
-        syscall
-        """);
-    assert result.contains(".data");
+    assertTrue(result.contains(".intel_syntax noprefix\n.global _start"));
+    assertTrue(result.contains("mov rax, 60\nxor rdi, rdi\nsyscall"));
+    assertTrue(result.contains(".data"));
   }
 
   @Test
-  void handlePrintGeneratesCorrectAssemblyForSingleStatement() {
-    // Setup
+  void handlePrintGeneratesCorrectAssemblyForImmutableVariable() {
     AssemblyBuilder builder = new AssemblyBuilder();
-    builder.stringVariables.put("greeting", "Hello");
+    builder.stringVariables.put("greeting", new AssemblyBuilder.StringVar("Hello", false));
 
-    // Act
-    builder.handlePrint("skriv(greeting)");
+    builder.handlePrint(new Call("skriv", List.of("greeting")));
 
-    // Assert
     String result = builder.text.toString();
-    assert result.contains("lea rsi, greeting");
-    assert result.contains("mov rdx, 5"); // "Hello"
+    assertTrue(result.contains("lea rsi, greeting"));
+    assertTrue(result.contains("mov rdx, 5"));
+  }
+
+  @Test
+  void handlePrintGeneratesCorrectAssemblyForMutableVariable() {
+    AssemblyBuilder builder = new AssemblyBuilder();
+    builder.stringVariables.put("greeting", new AssemblyBuilder.StringVar("Hello", true));
+
+    builder.handlePrint(new Call("skriv", List.of("greeting")));
+
+    String result = builder.text.toString();
+    assertTrue(result.contains("mov rsi, [rip + greeting]"));
+    assertTrue(result.contains("mov rdx, 5"));
+  }
+
+  @Test
+  void handlePrintCorrectlyCountsNewlineAsOneByte() {
+    AssemblyBuilder builder = new AssemblyBuilder();
+    builder.stringVariables.put("msg", new AssemblyBuilder.StringVar("Hello\n", false));
+
+    builder.handlePrint(new Call("skriv", List.of("msg")));
+
+    assertTrue(builder.text.toString().contains("mov rdx, 6"));
   }
 
   @Test
   void handlePrintWorksCorrectlyWithMultiplePrintStatements() {
-    // Setup
     AssemblyBuilder builder = new AssemblyBuilder();
-    builder.stringVariables.put("msg1", "Hi");
-    builder.stringVariables.put("msg2", "World");
+    builder.stringVariables.put("msg1", new AssemblyBuilder.StringVar("Hi", false));
+    builder.stringVariables.put("msg2", new AssemblyBuilder.StringVar("World", false));
 
-    // Act
-    builder.handlePrint("skriv(msg1)");
-    builder.handlePrint("skriv(msg2)");
+    builder.handlePrint(new Call("skriv", List.of("msg1")));
+    builder.handlePrint(new Call("skriv", List.of("msg2")));
 
-    // Assert
     String result = builder.text.toString();
-    assert (result).contains("lea rsi, msg1");
-    assert (result).contains("lea rsi, msg2");
-    assert (result).contains("mov rdx, 2");  // "Hi"
-    assert (result).contains("mov rdx, 5"); // "World"
+    assertTrue(result.contains("lea rsi, msg1"));
+    assertTrue(result.contains("lea rsi, msg2"));
+    assertTrue(result.contains("mov rdx, 2"));
+    assertTrue(result.contains("mov rdx, 5"));
   }
 }

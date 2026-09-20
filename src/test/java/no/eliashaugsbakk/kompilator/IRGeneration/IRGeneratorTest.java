@@ -3,6 +3,9 @@ package no.eliashaugsbakk.kompilator.IRGeneration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Alloc;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Call;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Instruction;
 import no.eliashaugsbakk.kompilator.parsing.AST;
 import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
@@ -15,7 +18,7 @@ class IRGeneratorTest {
   @Test
   void singlePrintStatementGeneratesCorrectIR() {
     AST ast = buildAST("skriv", "hello");
-    List<Instr> ir = new IRGenerator(ast).generate();
+    List<Instruction> ir = new IRGenerator(ast).generate();
 
     assertEquals(2, ir.size());
     assertEquals(new Alloc("t0", "string", false, "hello"), ir.get(0));
@@ -28,7 +31,7 @@ class IRGeneratorTest {
     program.addStatement(buildStatement("skriv", "hello"));
     program.addStatement(buildStatement("skriv", "world"));
 
-    List<Instr> ir = new IRGenerator(new AST(program)).generate();
+    List<Instruction> ir = new IRGenerator(new AST(program)).generate();
 
     assertEquals(4, ir.size());
     assertEquals(new Alloc("t0", "string", false, "hello"), ir.get(0));

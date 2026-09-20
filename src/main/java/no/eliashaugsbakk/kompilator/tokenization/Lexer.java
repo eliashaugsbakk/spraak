@@ -125,6 +125,18 @@ public class Lexer {
       state = NORMAL;
       position++; // skip closing "
       current = input.charAt(position);
+    } else if (current == '\\' && position + 1 < input.length()) {
+      // The source file contains \n as two characters: '\' and 'n'.
+      // We intercept the backslash and emit the character it represents.
+      position++;
+      current = input.charAt(position);
+      switch (current) {
+        case 'n' -> wordBuffer.append('\n');
+        case 't' -> wordBuffer.append('\t');
+        case 'r' -> wordBuffer.append('\r');
+        case '\\' -> wordBuffer.append('\\');
+        default -> wordBuffer.append(current);
+      }
     } else {
       wordBuffer.append(current);
     }

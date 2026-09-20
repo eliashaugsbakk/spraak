@@ -5,6 +5,7 @@ import no.eliashaugsbakk.kompilator.IO.File;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriter;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriterException;
 import no.eliashaugsbakk.kompilator.IRGeneration.IRGenerator;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Instruction;
 import no.eliashaugsbakk.kompilator.asmGeneration.AssemblyBuilder;
 import no.eliashaugsbakk.kompilator.assembleAndLink.AssemblerAndLinker;
 import no.eliashaugsbakk.kompilator.parsing.AST;
@@ -57,7 +58,7 @@ public class Main {
       System.exit(1);
     }
 
-    List<String> IR = new IRGenerator(ast).generate();
+    List<Instruction> IR = new IRGenerator(ast).generate();
 
     String assembly = new AssemblyBuilder().createAssembly(IR);
 

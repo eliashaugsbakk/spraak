@@ -2,6 +2,10 @@ package no.eliashaugsbakk.kompilator.IRGeneration;
 
 import java.util.ArrayList;
 import java.util.List;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Alloc;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Assign;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Call;
+import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Instruction;
 import no.eliashaugsbakk.kompilator.parsing.AST;
 import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
@@ -15,7 +19,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.statement.Statement;
 
 public class IRGenerator {
   private final AST ast;
-  private final List<Instr> ir = new ArrayList<>();
+  private final List<Instruction> ir = new ArrayList<>();
   private int tempCounter = 0;
 
 
@@ -23,12 +27,13 @@ public class IRGenerator {
     this.ast = ast;
   }
 
-  public List<Instr> generate() {
+  public List<Instruction> generate() {
     Program program = (Program) ast.getRoot();
 
     for (Statement stmt : program.statements) {
       generateStatement(stmt);
     }
+    ir.forEach(IO::println);
     return ir;
   }
 

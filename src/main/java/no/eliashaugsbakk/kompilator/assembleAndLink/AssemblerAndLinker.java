@@ -45,6 +45,7 @@ public class AssemblerAndLinker {
     }
 
     // Clean up
+    /*
     try {
       fileReaderWriter.deleteFile(assemblyFileName);
     } catch (FileReaderWriterException e) {
@@ -55,6 +56,8 @@ public class AssemblerAndLinker {
     } catch (FileReaderWriterException e) {
       IO.println("err: Could not delete assembled file: " + e.getMessage());
     }
+
+     */
   }
 
   private static void runProcess(ProcessBuilder processBuilder)
