@@ -20,6 +20,7 @@ import static no.eliashaugsbakk.kompilator.tokenization.TokenType.TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
+import no.eliashaugsbakk.kompilator.Main;
 
 public class Lexer {
   private char current;
@@ -66,7 +67,11 @@ public class Lexer {
     }
 
     tokens.add(new Token(EOF, "End of File", line, column));
-    //tokens.forEach(token -> IO.println(token.type().toString() + ": " + token.value()));
+    if (Main.VERBOSE) {
+      IO.println("======= Lexer =======");
+      tokens.forEach(token -> IO.println(token.type().toString() + ": " + token.value()));
+      IO.println("\n\n\n\n");
+    }
     return tokens;
   }
 

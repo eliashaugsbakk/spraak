@@ -1,5 +1,6 @@
 package no.eliashaugsbakk.kompilator;
 
+import java.util.Arrays;
 import java.util.List;
 import no.eliashaugsbakk.kompilator.IO.File;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriter;
@@ -17,14 +18,18 @@ import no.eliashaugsbakk.kompilator.tokenization.Lexer;
 import no.eliashaugsbakk.kompilator.tokenization.Token;
 
 public class Main {
-  public static final String programFileExtension = "spå";
+  public static boolean VERBOSE = false;
+  static final String programFileExtension = "spå";
 
 
   static void main(String[] args) {
-    if (args.length != 1) {
-      IO.println("err: Only accepts one argument: The filename of the input program");
+    if (args.length == 0) {
+      IO.println("err: File path must be specified.");
       System.exit(1);
     }
+
+    VERBOSE = Arrays.asList(args).contains("--verbose")
+        || Arrays.asList(args).contains("-v");
 
     String inputFileName = args[0];
 

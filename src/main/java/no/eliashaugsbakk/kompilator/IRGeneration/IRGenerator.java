@@ -6,6 +6,7 @@ import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Alloc;
 import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Assign;
 import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Call;
 import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Instruction;
+import no.eliashaugsbakk.kompilator.Main;
 import no.eliashaugsbakk.kompilator.parsing.AST;
 import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
@@ -33,7 +34,11 @@ public class IRGenerator {
     for (Statement stmt : program.statements) {
       generateStatement(stmt);
     }
-    ir.forEach(IO::println);
+    if (Main.VERBOSE) {
+      IO.println("======= IRGenerator =======");
+      ir.forEach(IO::println);
+      IO.println("\n\n\n\n");
+    }
     return ir;
   }
 
