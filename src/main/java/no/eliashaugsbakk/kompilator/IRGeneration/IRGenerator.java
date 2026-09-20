@@ -69,7 +69,7 @@ public class IRGenerator {
     } else {
       throw new IRGenerationException("Unknown function: " + identifierDecl.initializer);
     }
-    ir.add(new Alloc(identifierDecl.identifier, identifierDecl.type.type, identifierDecl.mutable,
+    ir.add(new Alloc(identifierDecl.identifier, identifierDecl.type.name(), identifierDecl.mutable,
         value));
   }
 

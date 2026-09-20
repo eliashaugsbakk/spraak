@@ -47,13 +47,13 @@ public class Analyzer {
    */
   private void analyzeIdentifierDeclaration(IdentifierDeclaration decl) throws SemanticException {
     boolean initialized = decl.initializer != null;
-    boolean nullable = decl.type.nullable;
+    boolean nullable = decl.type.nullable();
     Type declaredType = decl.type;
 
     // Ensure the type exists
     // string is the only type implemented, but should look in a type table or something in the future
-    if (!declaredType.type.equals("string")) {
-      throw new SemanticException("Unknown type declaration: " + declaredType.type);
+    if (!declaredType.name().equals("string")) {
+      throw new SemanticException("Unknown type declaration: " + declaredType.name());
     }
 
     // Immutable variables must always be initialized on declaration
@@ -137,24 +137,24 @@ public class Analyzer {
     for (Expression argument : call.arguments) {
       Type argType = typeOf(argument);
 
-      if (!argType.type.equals("string")) {
+      if (!argType.name().equals("string")) {
         throw new SemanticException("skriv() only supports string literals");
       }
 
-      if (argType.nullable) {
-        throw new SemanticException("Cannot print nullable string: " + argType.type + "?.");
+      if (argType.nullable()) {
+        throw new SemanticException("Cannot print nullable string: " + argType.name() + "?.");
       }
     }
   }
 
   private void checkAssignable(Type target, Type value) throws SemanticException {
-    if (!target.type.equals(value.type)) {
+    if (!target.name().equals(value.name())) {
       throw new SemanticException(
-          "Type mismatch: expected " + target.type + ", found " + value.type);
+          "Type mismatch: expected " + target.name() + ", found " + value.name());
     }
-    if (value.nullable && !target.nullable) {
+    if (value.nullable() && !target.nullable()) {
       throw new SemanticException(
-          "Cannot assign nullable " + value.type + " to non-nullable " + target.type);
+          "Cannot assign nullable " + value.name() + " to non-nullable " + target.name());
     }
   }
 
