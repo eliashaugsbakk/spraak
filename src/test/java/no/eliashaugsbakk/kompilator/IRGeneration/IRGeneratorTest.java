@@ -15,11 +15,11 @@ class IRGeneratorTest {
   @Test
   void singlePrintStatementGeneratesCorrectIR() {
     AST ast = buildAST("skriv", "hello");
-    List<String> ir = new IRGenerator(ast).generate();
+    List<Instr> ir = new IRGenerator(ast).generate();
 
     assertEquals(2, ir.size());
-    assertEquals("t0: string = \"hello\"", ir.get(0));
-    assertEquals("print(t0)", ir.get(1));
+    assertEquals(new Alloc("t0", "string", false, "hello"), ir.get(0));
+    assertEquals(new Call("skriv", List.of("t0")), ir.get(1));
   }
 
   @Test
@@ -28,14 +28,13 @@ class IRGeneratorTest {
     program.addStatement(buildStatement("skriv", "hello"));
     program.addStatement(buildStatement("skriv", "world"));
 
-    AST ast = new AST(program);
-    List<String> ir = new IRGenerator(ast).generate();
+    List<Instr> ir = new IRGenerator(new AST(program)).generate();
 
     assertEquals(4, ir.size());
-    assertEquals("t0: string = \"hello\"", ir.get(0));
-    assertEquals("print(t0)", ir.get(1));
-    assertEquals("t1: string = \"world\"", ir.get(2));
-    assertEquals("print(t1)", ir.get(3));
+    assertEquals(new Alloc("t0", "string", false, "hello"), ir.get(0));
+    assertEquals(new Call("skriv", List.of("t0")), ir.get(1));
+    assertEquals(new Alloc("t1", "string", false, "world"), ir.get(2));
+    assertEquals(new Call("skriv", List.of("t1")), ir.get(3));
   }
 
   private AST buildAST(String functionName, String argument) {
