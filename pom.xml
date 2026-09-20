@@ -23,13 +23,13 @@
 
     <groupId>no.eliashaugsbakk.kompilator</groupId>
     <artifactId>kompilator</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
 
     <scm>
         <connection>scm:git:https://github.com/eliashaugsbakk/spraak.git</connection>
         <developerConnection>scm:git:git@github.com:eliashaugsbakk/spraak.git</developerConnection>
         <url>https://github.com/eliashaugsbakk/spraak</url>
-        <tag>v0.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
