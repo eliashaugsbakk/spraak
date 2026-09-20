@@ -1,6 +1,8 @@
 package no.eliashaugsbakk.kompilator.tokenization;
 
 import static java.lang.Character.isLetterOrDigit;
+import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_MULTI_LINE_COMMENT;
+import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_SINGLE_LINE_COMMENT;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_STRING;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_TYPE;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_WORD;
@@ -57,6 +59,10 @@ public class Lexer {
         inType();
       } else if (state == IN_STRING) {
         inString();
+      } else if (state == IN_SINGLE_LINE_COMMENT) {
+        inSingleLineComment();
+      } else if (state == IN_MULTI_LINE_COMMENT) {
+        inMultiLineComment();
       }
 
       if (state == NORMAL) {
@@ -75,12 +81,19 @@ public class Lexer {
     return tokens;
   }
 
+
   private void normal() {
     if (Character.isWhitespace(current)) {
       return;
     }
 
-    if (current == '"') {
+    if (current == '/') {
+      if (position + 1 < input.length() && input.charAt(position + 1) == '/') {
+        state = IN_SINGLE_LINE_COMMENT;
+      } else if (input.charAt(position + 1) == '*') {
+        state = IN_MULTI_LINE_COMMENT;
+      }
+    } else if (current == '"') {
       state = IN_STRING;
     } else if (isWordCharacter(current)) {
       state = IN_WORD;
@@ -174,5 +187,19 @@ public class Lexer {
 
   private void clearWordBuffer() {
     wordBuffer.delete(0, wordBuffer.length());
+  }
+
+  private void inSingleLineComment() {
+    if (current == '\n') {
+      state = NORMAL;
+    }
+  }
+
+  private void inMultiLineComment() {
+    if (current == '*') {
+      if (position + 1 < input.length() && input.charAt(position + 1) == '/') {
+        state = NORMAL;
+      }
+    }
   }
 }
