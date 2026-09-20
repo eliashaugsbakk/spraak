@@ -18,20 +18,18 @@
   - Check Updates:      mvn versions:display-dependency-updates
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.eliashaugsbakk.kompilator</groupId>
     <artifactId>kompilator</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.2</version>
 
     <scm>
         <connection>scm:git:https://github.com/eliashaugsbakk/spraak.git</connection>
         <developerConnection>scm:git:git@github.com:eliashaugsbakk/spraak.git</developerConnection>
         <url>https://github.com/eliashaugsbakk/spraak</url>
-        <tag>HEAD</tag>
+        <tag>v0.0.2</tag>
     </scm>
 
     <properties>
