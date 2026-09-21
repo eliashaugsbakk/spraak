@@ -6,7 +6,7 @@ public class ParserException extends Exception {
   public ParserException(Position position, String message) {
     String pos;
     if (position == null) {
-      pos = "unknown position";
+      pos = "ukjent posisjon";
     } else {
       pos = position.line() + ":" + position.column();
     }

@@ -35,7 +35,7 @@ public class Analyzer {
       case ExpressionStatement exprStmt -> typeOf(exprStmt.expression);
       case Assignment assignment -> analyzeAssignment(assignment);
       case IdentifierDeclaration decl -> analyzeIdentifierDeclaration(decl);
-      default -> throw new SemanticException(stmt.position, "Unrecognized statement");
+      default -> throw new SemanticException(stmt.position, "Ukjent programkonstruksjon");
     }
   }
 
@@ -49,20 +49,20 @@ public class Analyzer {
 
     // Ensure the type exists
     // string is the only type implemented, but should look in a type table or something in the future
-    if (!declaredType.name().equals("string")) {
-      throw new SemanticException(decl.position, "Unknown type declaration: " + declaredType.name());
+    if (!declaredType.name().equals("streng")) {
+      throw new SemanticException(decl.position, "Ukjent type: " + declaredType.name());
     }
 
     // Immutable variables must always be initialized on declaration
     if (!decl.mutable && !initialized) {
       throw new SemanticException(decl.position,
-          "Immutable variable " + decl.identifier + " must be initialized upon declaration.");
+          "Uforanderlig variabel " + decl.identifier + " må initialiseres ved deklarasjon.");
     }
 
     // If no initializer, ensure type is nullable
     if (!initialized && !nullable) {
       throw new SemanticException(decl.position,
-          "Non-nullable type requires initialization");
+          "En type som ikke kan være null, må initialiseres");
     }
 
     // If initializer exists, validate type matches declared type
@@ -85,13 +85,13 @@ public class Analyzer {
     // Check existence
     if (symbol == null) {
       throw new SemanticException(assignment.position,
-          "Variable not declared: " + assignment.identifier);
+          "Variabelen er ikke deklarert: " + assignment.identifier);
     }
 
     // Check mutability
     if (!symbol.mutable) {
       throw new SemanticException(assignment.position,
-          "Cannot assign to immutable value: " + assignment.identifier);
+          "Kan ikke tilordne en uforanderlig verdi: " + assignment.identifier);
     }
 
     // Type and Nullability Check
@@ -111,27 +111,27 @@ public class Analyzer {
     // Should ref. function table in the future
     if (!call.functionName.equals("skriv")) {
       throw new SemanticException(call.position,
-          "Function call is not supported: " + call.functionName);
+          "Funksjonskallet støttes ikke: " + call.functionName);
     }
 
     // Validate argument count
     if (call.arguments.size() != 1) {
       throw new SemanticException(call.position,
-          "skriv() supports only one argument");
+          "skriv() støtter bare ett argument");
     }
 
     // Validate argument types
     for (Expression argument : call.arguments) {
       Type argType = typeOf(argument);
 
-      if (!argType.name().equals("string")) {
+      if (!argType.name().equals("streng")) {
         throw new SemanticException(call.position,
-            "skriv() only supports string literals");
+            "skriv() støtter bare strengliteraler");
       }
 
       if (argType.nullable()) {
         throw new SemanticException(call.position,
-            "Cannot print nullable string: " + argType.name() + "?.");
+            "Kan ikke skrive ut en nullbar streng: " + argType.name() + "?.");
       }
     }
   }
@@ -139,11 +139,11 @@ public class Analyzer {
   private void checkAssignable(Type target, Type value) throws SemanticException {
     if (!target.name().equals(value.name())) {
       throw new SemanticException(null,
-          "Type mismatch: expected " + target.name() + ", found " + value.name());
+          "Typekonflikt: forventet " + target.name() + ", fant " + value.name());
     }
     if (value.nullable() && !target.nullable()) {
       throw new SemanticException(null,
-          "Cannot assign nullable " + value.name() + " to non-nullable " + target.name());
+          "Kan ikke tilordne nullbar " + value.name() + " til ikke-nullbar " + target.name());
     }
   }
 
@@ -153,18 +153,18 @@ public class Analyzer {
    */
   private Type typeOf(Expression expr) throws SemanticException {
     switch (expr) {
-      case null -> throw new SemanticException(expr.position, "Expression cannot be null");
+      case null -> throw new SemanticException(expr.position, "Uttrykket kan ikke være null");
       case StringLiteral _ -> {
-        return new Type("string", false);
+        return new Type("streng", false);
       }
       case Identifier id -> {
         Symbol symbol = symbolTable.get(id.name);
 
         if (symbol == null) {
-          throw new SemanticException(expr.position, "Undeclared identifier: " + id.name);
+          throw new SemanticException(expr.position,           "Udeklarert identifikator: " + id.name);
         }
         if (!symbol.initialized) {
-          throw new SemanticException(expr.position, "Identifier is not initialized: " + id.name);
+          throw new SemanticException(expr.position, "Identifikatoren er ikke initialisert: " + id.name);
         }
 
         return symbol.type;
@@ -177,6 +177,6 @@ public class Analyzer {
       }
     }
 
-    throw new SemanticException(expr.position, "Unknown expression type: " + expr.getClass().getSimpleName());
+    throw new SemanticException(expr.position, "Ukjent uttrykkstype: " + expr.getClass().getSimpleName());
   }
 }

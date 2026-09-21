@@ -72,9 +72,9 @@ public class Lexer {
       position++;
     }
 
-    tokens.add(new Token(EOF, "End of File", new Position(line, column)));
+    tokens.add(new Token(EOF, "Filslutt", new Position(line, column)));
     if (Main.VERBOSE) {
-      IO.println("======= Lexer =======");
+      IO.println("======= Leksikalsk analyse =======");
       tokens.forEach(token -> IO.println(token.type().toString() + ": " + token.value()));
       IO.println("\n\n\n\n");
     }

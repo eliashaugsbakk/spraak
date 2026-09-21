@@ -24,7 +24,7 @@ public class Main {
 
   static void main(String[] args) {
     if (args.length == 0) {
-      IO.println("err: File path must be specified.");
+      IO.println("feil: Filsti må angis.");
       System.exit(1);
     }
 
@@ -34,7 +34,7 @@ public class Main {
     String inputFileName = args[0];
 
     if (!inputFileName.endsWith("." + programFileExtension)) {
-      IO.println("err: Input file must use the file extension: " + programFileExtension);
+      IO.println("feil: Inndatafilen må ha filendelsen: " + programFileExtension);
       System.exit(1);
     }
 
@@ -43,7 +43,7 @@ public class Main {
     try {
       inputProgram = fileReaderWriter.readFile(inputFileName);
     } catch (FileReaderWriterException e) {
-      IO.println("err: Could not read input file: " + inputFileName + "\n\n" + e.getMessage());
+      IO.println("feil: Kunne ikke lese inndatafilen: " + inputFileName + "\n\n" + e.getMessage());
       System.exit(1);
     }
 

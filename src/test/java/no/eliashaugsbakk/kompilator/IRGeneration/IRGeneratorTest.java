@@ -22,7 +22,7 @@ class IRGeneratorTest {
     List<Instruction> ir = new IRGenerator(ast).generate();
 
     assertEquals(2, ir.size());
-    assertEquals(new Alloc("t0", "string", false, "hello"), ir.get(0));
+    assertEquals(new Alloc("t0", "streng", false, "hello"), ir.get(0));
     assertEquals(new Call("skriv", List.of("t0")), ir.get(1));
   }
 
@@ -35,9 +35,9 @@ class IRGeneratorTest {
     List<Instruction> ir = new IRGenerator(new AST(program)).generate();
 
     assertEquals(4, ir.size());
-    assertEquals(new Alloc("t0", "string", false, "hello"), ir.get(0));
+    assertEquals(new Alloc("t0", "streng", false, "hello"), ir.get(0));
     assertEquals(new Call("skriv", List.of("t0")), ir.get(1));
-    assertEquals(new Alloc("t1", "string", false, "world"), ir.get(2));
+    assertEquals(new Alloc("t1", "streng", false, "world"), ir.get(2));
     assertEquals(new Call("skriv", List.of("t1")), ir.get(3));
   }
 

@@ -17,7 +17,7 @@ public class FileReaderWriter {
       String fileBody = Files.readString(path);
       return new File(fileName, fileBody);
     } catch (IOException e) {
-      throw new FileReaderWriterException("Failed to read file: " + inputFilePath, e);
+      throw new FileReaderWriterException("Kunne ikke lese filen: " + inputFilePath, e);
     }
   }
 
@@ -25,7 +25,7 @@ public class FileReaderWriter {
     try {
       Files.writeString(Path.of(file.fileName()), file.fileBody());
     } catch (IOException e) {
-      throw new FileReaderWriterException("Failed to write file: " + file.fileName(), e);
+      throw new FileReaderWriterException("Kunne ikke skrive filen: " + file.fileName(), e);
     }
   }
 
@@ -33,7 +33,7 @@ public class FileReaderWriter {
     try {
       Files.delete(Path.of(filePath));
     } catch (IOException e) {
-      throw new FileReaderWriterException("Could not delete file: " + filePath, e);
+      throw new FileReaderWriterException("Kunne ikke slette filen: " + filePath, e);
     }
   }
 }

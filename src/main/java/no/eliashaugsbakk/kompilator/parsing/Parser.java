@@ -78,8 +78,8 @@ public class Parser {
 
   private Statement parseStatement() throws ParserException {
     // multiple statements are supported for v0.0.2;
-    // identifier declaration: x: string = "hello"; (with expression)
-    // identifier declaration: x: string; (without expression)
+    // identifier declaration: x: streng = "hello"; (with expression)
+    // identifier declaration: x: streng; (without expression)
     // assignment: x = "hello"; (identifier gets assigned an expression)
     // expression statements: print(x); (function without a return value)
 
@@ -102,7 +102,7 @@ public class Parser {
 
     // must be some other token which is not a statement
     else {
-      throw new ParserException(token.position(), "Unexpected token: " + token.value());
+      throw new ParserException(token.position(), "Uventet symbol: " + token.value());
     }
   }
 
@@ -117,7 +117,7 @@ public class Parser {
     } else if (token.value().contentEquals("skriv")) {
       return parseExpressionStatement();
     } else {
-      throw new ParserException(token.position(), "unknown keyword: " + token.value());
+      throw new ParserException(token.position(), "Ukjent nøkkelord: " + token.value());
     }
   }
 
@@ -148,7 +148,7 @@ public class Parser {
       expectSemicolon();
       return new ExpressionStatement(expr.position, expr);
     } else {
-      throw new ParserException(next.position(), "Unexpected token after identifier: " + next.value());
+      throw new ParserException(next.position(), "Uventet symbol etter identifikator: " + next.value());
     }
   }
 
@@ -156,14 +156,14 @@ public class Parser {
     Token nameToken = tokens.get(current);
     if (nameToken.type() != IDENTIFIER) {
       throw new ParserException(nameToken.position(),
-          "Expected identifier after declaration keyword, got: " + nameToken.value());
+          "Forventet identifikator etter deklarasjonsnøkkelord, fikk: " + nameToken.value());
     }
     String identifier = nameToken.value();
     current++; // consume identifier
 
     if (tokens.get(current).type() != COLON) {
       throw new ParserException(tokens.get(current).position(),
-          "Expected : after identifier in declaration");
+          "Forventet : etter identifikator i deklarasjonen");
     }
     current++; // skip :
 
@@ -193,7 +193,7 @@ public class Parser {
     Token token = tokens.get(current);
     if (token.type() != TYPE) {
       throw new ParserException(token.position(),
-          "Expected type, got: " + token.value());
+          "Forventet type, fikk: " + token.value());
     }
     current++;
 
@@ -211,7 +211,7 @@ public class Parser {
   private Expression parseExpression() throws ParserException {
     // an expression produces a value and may contain other expressions
     //  implemented for v0.0.2 are:
-    //  "string"    - STRING_LITERAL
+    //  "streng"    - STRING_LITERAL
     //  my_var      - IDENTIFIER
 
     Token token = tokens.get(current);
@@ -228,7 +228,7 @@ public class Parser {
       return new Identifier(token.position(), token.value());
     } else {
       throw new ParserException(token.position(),
-          "Unexpected token: " + token.value() + ". Expected an expression");
+          "Uventet symbol: " + token.value() + ". Forventet et uttrykk");
     }
   }
 
@@ -245,7 +245,7 @@ public class Parser {
 
     if (tokens.get(current).type() != LPAREN) {
       throw new ParserException(tokens.get(current).position(),
-          "Expected (");
+          "Forventet (");
     }
     current++;  // skip (
 
@@ -259,7 +259,7 @@ public class Parser {
 
     if (current >= tokens.size() || tokens.get(current).type() != RPAREN) {
       throw new ParserException(tokens.get(current).position(),
-          "Expected )");
+          "Forventet )");
     }
     current++;  // skip )
 
@@ -268,10 +268,10 @@ public class Parser {
 
   private void expectSemicolon() throws ParserException {
     if (current >= tokens.size()) {
-      throw new ParserException(null, "Expected ;");
+      throw new ParserException(null, "Forventet ;");
     } else if (tokens.get(current).type() != SEMICOLON) {
       throw new ParserException(tokens.get(current).position(),
-          "Expected: ;");
+          "Forventet: ;");
     }
     current++;
   }

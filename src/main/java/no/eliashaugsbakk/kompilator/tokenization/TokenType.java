@@ -5,9 +5,9 @@ public enum TokenType {
   IDENTIFIER,       // variable_1
   STRING_LITERAL,   // "Hello, World!"
   COLON,            // : (set x[:] int = ...)
-  TYPE,             // string, i32, i16?, my_type, ... (? makes nullable)
+  TYPE,             // streng, i32, i16?, my_type, ... (? makes nullable)
   ASSIGN,           // =
-  NULLABLE,         // ? (x = string?;)
+  NULLABLE,         // ? (x = streng?;)
   LPAREN,           // (
   RPAREN,           // )
   SEMICOLON,        // ;

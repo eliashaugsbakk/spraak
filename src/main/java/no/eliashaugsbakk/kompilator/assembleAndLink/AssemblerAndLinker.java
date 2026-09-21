@@ -22,7 +22,7 @@ public class AssemblerAndLinker {
     try {
       fileReaderWriter.writeFile(new File(assemblyFileName, assembly));
     } catch (FileReaderWriterException e) {
-      IO.println("err: Could not write file: " + e.getMessage());
+      IO.println("feil: Kunne ikke skrive filen: " + e.getMessage());
     }
 
     try {
@@ -30,9 +30,9 @@ public class AssemblerAndLinker {
       ProcessBuilder asPB = new ProcessBuilder("as", "-o", assembledFileName, assemblyFileName);
       runProcess(asPB);
     } catch (IOException e) {
-      IO.println("err: Failed to invoke GCC\n\n" + e);
+      IO.println("feil: Kunne ikke starte GCC\n\n" + e);
     } catch (InterruptedException e) {
-      IO.println("err: Failed to wait for gcc output\n\n" + e);
+      IO.println("feil: Kunne ikke vente på GCC-utdata\n\n" + e);
     }
 
     try {
@@ -40,9 +40,9 @@ public class AssemblerAndLinker {
       ProcessBuilder ldPB = new ProcessBuilder("ld", "-o", programName, assembledFileName);
       runProcess(ldPB);
     } catch (IOException e) {
-      IO.println("err: Failed to invoke GCC\n\n" + e);
+      IO.println("feil: Kunne ikke starte GCC\n\n" + e);
     } catch (InterruptedException e) {
-      IO.println("err: Failed to wait for gcc output\n\n" + e);
+      IO.println("feil: Kunne ikke vente på GCC-utdata\n\n" + e);
     }
 
     // Clean up
@@ -50,12 +50,12 @@ public class AssemblerAndLinker {
       try {
         fileReaderWriter.deleteFile(assemblyFileName);
       } catch (FileReaderWriterException e) {
-        IO.println("err: Could not delete assembly file: " + e.getMessage());
+        IO.println("feil: Kunne ikke slette assemblerfilen: " + e.getMessage());
       }
       try {
         fileReaderWriter.deleteFile(assembledFileName);
       } catch (FileReaderWriterException e) {
-        IO.println("err: Could not delete assembled file: " + e.getMessage());
+        IO.println("feil: Kunne ikke slette objektfilen: " + e.getMessage());
       }
     }
   }

@@ -87,7 +87,7 @@ public class AssemblyBuilder {
       this.bss.append(String.format("""
           %s: .skip 8
           """, alloc.name()));
-    } else if (alloc.type().equals("string")) {
+    } else if (alloc.type().equals("streng")) {
       String pointer = alloc.name() + "_ptr";
       this.rodata.append(String.format("""
           %s: .ascii "%s"
@@ -96,17 +96,17 @@ public class AssemblyBuilder {
           %s: .quad %s
           """, alloc.name(), pointer));
     } else {
-      throw new AssemblyBuilderException("Not a supported type");
+      throw new AssemblyBuilderException("Typen støttes ikke");
     }
   }
 
   private void handleAllocRO(Alloc alloc) {
-    if (alloc.type().equals("string")) {
+    if (alloc.type().equals("streng")) {
       this.rodata.append(String.format("""
           %s: .ascii "%s"
           """, alloc.name(), alloc.initializer()));
     } else {
-      throw new AssemblyBuilderException("Not a supported type to skriv");
+      throw new AssemblyBuilderException("Typen støttes ikke av skriv");
     }
   }
 
@@ -114,13 +114,13 @@ public class AssemblyBuilder {
     if (call.fn().equals("skriv")) {
       handlePrint(call);
     } else {
-      throw new AssemblyBuilderException("unknown call type: " + call.fn());
+      throw new AssemblyBuilderException("Ukjent kalltype: " + call.fn());
     }
   }
 
   void handlePrint(Call call) {
     if (call.args().size() != 1) {
-      throw new AssemblyBuilderException("Print only supports one argument");
+      throw new AssemblyBuilderException("Utskrift støtter bare ett argument");
     }
     String variableName = call.args().getFirst();
     StringVar var = this.stringVariables.get(variableName);

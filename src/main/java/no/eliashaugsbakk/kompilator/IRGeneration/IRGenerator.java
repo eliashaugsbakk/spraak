@@ -35,7 +35,7 @@ public class IRGenerator {
       generateStatement(stmt);
     }
     if (Main.VERBOSE) {
-      IO.println("======= IRGenerator =======");
+      IO.println("======= IR-generator =======");
       ir.forEach(IO::println);
       IO.println("\n\n\n\n");
     }
@@ -57,7 +57,7 @@ public class IRGenerator {
     if (assignment.expression instanceof StringLiteral stringLiteral) {
       value = stringLiteral.value;
     } else {
-      throw new IRGenerationException(assignment.position, "Only strings are implemented");
+      throw new IRGenerationException(assignment.position, "Bare strenger er implementert");
     }
     ir.add(new Assign(assignment.identifier, value));
   }
@@ -67,7 +67,7 @@ public class IRGenerator {
     if (identifierDecl.initializer instanceof StringLiteral stringLiteral) {
       value = stringLiteral.value;
     } else {
-      throw new IRGenerationException(identifierDecl.position, "Unknown function: " + identifierDecl.initializer);
+      throw new IRGenerationException(identifierDecl.position, "Ukjent funksjon: " + identifierDecl.initializer);
     }
     ir.add(new Alloc(identifierDecl.identifier, identifierDecl.type.name(), identifierDecl.mutable,
         value));
@@ -77,7 +77,7 @@ public class IRGenerator {
     if (expr instanceof FunctionCall call) {
       generateFunctionCall(call);
     } else {
-      throw new IRGenerationException(expr.position, "Only expression which can stand alone are functions");
+      throw new IRGenerationException(expr.position, "Bare funksjoner kan stå alene som uttrykk");
     }
   }
 
@@ -88,12 +88,12 @@ public class IRGenerator {
     fnCall.arguments.forEach(arg -> {
       if (arg instanceof StringLiteral stringLiteral) {
         String temp = "t" + tempCounter++;
-        ir.add(new Alloc(temp, "string", false, stringLiteral.value));
+        ir.add(new Alloc(temp, "streng", false, stringLiteral.value));
         arguments.add(temp);
       } else if (arg instanceof Identifier identifier) {
         arguments.add(identifier.name);
       } else {
-        throw new IRGenerationException(fnCall.position, "Unknown function: " + arg);
+        throw new IRGenerationException(fnCall.position, "Ukjent funksjon: " + arg);
       }
     });
 
