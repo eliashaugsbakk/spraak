@@ -72,7 +72,7 @@ public class Lexer {
       position++;
     }
 
-    tokens.add(new Token(EOF, "End of File", line, column));
+    tokens.add(new Token(EOF, "End of File", new Position(line, column)));
     if (Main.VERBOSE) {
       IO.println("======= Lexer =======");
       tokens.forEach(token -> IO.println(token.type().toString() + ": " + token.value()));
@@ -99,20 +99,20 @@ public class Lexer {
       state = IN_WORD;
       wordBuffer.append(current);
     } else if (current == ':') {
-      tokens.add(new Token(COLON, ":", line, column));
+      tokens.add(new Token(COLON, ":", new Position(line, column)));
       state = IN_TYPE;
       position++; // Skip whitespace
 
     } else if (current == '=') {
-      tokens.add(new Token(ASSIGN, "=", line, column));
+      tokens.add(new Token(ASSIGN, "=", new Position(line, column)));
     } else if (current == '(') {
-      tokens.add(new Token(LPAREN, "(", line, column));
+      tokens.add(new Token(LPAREN, "(", new Position(line, column)));
     } else if (current == ')') {
-      tokens.add(new Token(RPAREN, ")", line, column));
+      tokens.add(new Token(RPAREN, ")", new Position(line, column)));
     } else if (current == ';') {
-      tokens.add(new Token(SEMICOLON, ";", line, column));
+      tokens.add(new Token(SEMICOLON, ";", new Position(line, column)));
     } else if (current == ',') {
-      tokens.add(new Token(COMMA, ",", line, column));
+      tokens.add(new Token(COMMA, ",", new Position(line, column)));
     }
   }
 
@@ -124,12 +124,14 @@ public class Lexer {
 
     if (current == '?') {
       state = NORMAL;
-      tokens.add(new Token(TYPE, wordBuffer.toString(), line, column - wordBuffer.length()));
-      tokens.add(new Token(NULLABLE, "?", line, column));
+      tokens.add(
+          new Token(TYPE, wordBuffer.toString(), new Position(line, column - wordBuffer.length())));
+      tokens.add(new Token(NULLABLE, "?", new Position(line, column)));
       clearWordBuffer();
     } else if (Character.isWhitespace(current) || current == '=' || current == ';') {
       state = NORMAL;
-      tokens.add(new Token(TYPE, wordBuffer.toString(), line, column - wordBuffer.length()));
+      tokens.add(
+          new Token(TYPE, wordBuffer.toString(), new Position(line, column - wordBuffer.length())));
       clearWordBuffer();
     } else {
       wordBuffer.append(current);
@@ -138,7 +140,7 @@ public class Lexer {
 
   private void inString() {
     if (current == '"') {
-      tokens.add(new Token(STRING_LITERAL, wordBuffer.toString(), line, column));
+      tokens.add(new Token(STRING_LITERAL, wordBuffer.toString(), new Position(line, column)));
       wordBuffer.delete(0, wordBuffer.length());
       state = NORMAL;
       position++; // skip closing "
@@ -172,15 +174,17 @@ public class Lexer {
   private void characterizeWord() {
     if (Keywords.KEYWORDS.contains(wordBuffer.toString())) {
       if (wordBuffer.toString().contentEquals("set")) {
-        tokens.add(new Token(KEYWORD, "set", line, column));
+        tokens.add(new Token(KEYWORD, "set", new Position(line, column)));
       } else if (wordBuffer.toString().contentEquals("mut")) {
-        tokens.add(new Token(KEYWORD, "mut", line, column));
+        tokens.add(new Token(KEYWORD, "mut", new Position(line, column)));
       } else {
         // this is a function call
-        tokens.add(new Token(KEYWORD, wordBuffer.toString(), line, column - wordBuffer.length()));
+        tokens.add(new Token(KEYWORD, wordBuffer.toString(),
+            new Position(line, column - wordBuffer.length())));
       }
     } else {
-      tokens.add(new Token(IDENTIFIER, wordBuffer.toString(), line, column - wordBuffer.length()));
+      tokens.add(new Token(IDENTIFIER, wordBuffer.toString(),
+          new Position(line, column - wordBuffer.length())));
     }
     clearWordBuffer();
   }

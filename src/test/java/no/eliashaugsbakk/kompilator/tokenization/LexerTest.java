@@ -23,8 +23,8 @@ class LexerTest {
     List<Token> tokens = lexer.tokenize();
 
     assertSame(KEYWORD, tokens.getFirst().type());
-    assertEquals(1, tokens.get(0).line());
-    assertEquals(1, tokens.get(0).column());
+    assertEquals(1, tokens.get(0).position().line());
+    assertEquals(1, tokens.get(0).position().column());
 
     assertSame(LPAREN, tokens.get(1).type());
 

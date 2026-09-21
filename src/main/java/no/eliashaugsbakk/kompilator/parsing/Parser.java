@@ -24,6 +24,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.statement.Assignment;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.IdentifierDeclaration;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Statement;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 import no.eliashaugsbakk.kompilator.tokenization.Token;
 
 /*
@@ -56,7 +57,7 @@ public class Parser {
 
   public Parser(List<Token> tokens) {
     this.tokens = tokens;
-    this.rootNode = new Program();
+    this.rootNode = new Program(null);
   }
 
   public AST parse() throws ParserException {
@@ -101,7 +102,7 @@ public class Parser {
 
     // must be some other token which is not a statement
     else {
-      throw new ParserException(token.line(), token.column(), "Unexpected token: " + token.value());
+      throw new ParserException(token.position(), "Unexpected token: " + token.value());
     }
   }
 
@@ -116,7 +117,7 @@ public class Parser {
     } else if (token.value().contentEquals("skriv")) {
       return parseExpressionStatement();
     } else {
-      throw new ParserException(token.line(), token.column(), "unknown keyword: " + token.value());
+      throw new ParserException(token.position(), "unknown keyword: " + token.value());
     }
   }
 
@@ -129,7 +130,7 @@ public class Parser {
 
     Expression expression = parseExpression();
     expectSemicolon();
-    return new ExpressionStatement(expression);
+    return new ExpressionStatement(expression.position, expression);
   }
 
   private Statement parseIdentifierStatement() throws ParserException {
@@ -145,23 +146,23 @@ public class Parser {
       current--; // rewind to identifier
       Expression expr = parseFunctionCall();
       expectSemicolon();
-      return new ExpressionStatement(expr);
+      return new ExpressionStatement(expr.position, expr);
     } else {
-      throw new ParserException(next.line(), next.column(), "Unexpected token after identifier: " + next.value());
+      throw new ParserException(next.position(), "Unexpected token after identifier: " + next.value());
     }
   }
 
   private Statement parseDeclaration(boolean isMutable) throws ParserException {
     Token nameToken = tokens.get(current);
     if (nameToken.type() != IDENTIFIER) {
-      throw new ParserException(nameToken.line(), nameToken.column(),
+      throw new ParserException(nameToken.position(),
           "Expected identifier after declaration keyword, got: " + nameToken.value());
     }
     String identifier = nameToken.value();
     current++; // consume identifier
 
     if (tokens.get(current).type() != COLON) {
-      throw new ParserException(tokens.get(current).line(), tokens.get(current).column(),
+      throw new ParserException(tokens.get(current).position(),
           "Expected : after identifier in declaration");
     }
     current++; // skip :
@@ -175,7 +176,7 @@ public class Parser {
     }
 
     expectSemicolon();
-    return new IdentifierDeclaration(identifier, type, initializer, isMutable);
+    return new IdentifierDeclaration(nameToken.position(), identifier, type, initializer, isMutable);
   }
 
   private Statement parseAssignment(String identifier) throws ParserException {
@@ -185,13 +186,13 @@ public class Parser {
     Expression value = parseExpression();
     expectSemicolon();
 
-    return new Assignment(identifier, value);
+    return new Assignment(value.position, identifier, value);
   }
 
   private Type parseType() throws ParserException {
     Token token = tokens.get(current);
     if (token.type() != TYPE) {
-      throw new ParserException(token.line(), token.column(),
+      throw new ParserException(token.position(),
           "Expected type, got: " + token.value());
     }
     current++;
@@ -217,32 +218,33 @@ public class Parser {
     current++;
 
     if (token.type() == STRING_LITERAL) {
-      return new StringLiteral(token.value());
+      return new StringLiteral(token.position(), token.value());
     } else if (token.type() == IDENTIFIER || token.type() == KEYWORD) {
       // could be function call or just identifier reference
       if (current < tokens.size() && tokens.get(current).type() == LPAREN) {
         current--;
         return parseFunctionCall();
       }
-      return new Identifier(token.value());
+      return new Identifier(token.position(), token.value());
     } else {
-      throw new ParserException(token.line(), token.column(),
+      throw new ParserException(token.position(),
           "Unexpected token: " + token.value() + ". Expected an expression");
     }
   }
 
   private FunctionCall parseFunctionCall() throws ParserException {
-    String name = tokens.get(current).value();
+    Token token = tokens.get(current);
+    String name = token.value();
     current++;
     List<Expression> arguments = parseFunctionArguments();
-    return new FunctionCall(name, arguments);
+    return new FunctionCall(token.position(), name, arguments);
   }
 
   private List<Expression> parseFunctionArguments() throws ParserException {
     List<Expression> arguments = new ArrayList<>();
 
     if (tokens.get(current).type() != LPAREN) {
-      throw new ParserException(tokens.get(current).line(), tokens.get(current).column(),
+      throw new ParserException(tokens.get(current).position(),
           "Expected (");
     }
     current++;  // skip (
@@ -256,7 +258,7 @@ public class Parser {
     }
 
     if (current >= tokens.size() || tokens.get(current).type() != RPAREN) {
-      throw new ParserException(tokens.get(current).line(), tokens.get(current).column(),
+      throw new ParserException(tokens.get(current).position(),
           "Expected )");
     }
     current++;  // skip )
@@ -266,9 +268,9 @@ public class Parser {
 
   private void expectSemicolon() throws ParserException {
     if (current >= tokens.size()) {
-      throw new ParserException(-1, -1, "Expected ;");
+      throw new ParserException(null, "Expected ;");
     } else if (tokens.get(current).type() != SEMICOLON) {
-      throw new ParserException(tokens.get(current).line(), tokens.get(current).column(),
+      throw new ParserException(tokens.get(current).position(),
           "Expected: ;");
     }
     current++;

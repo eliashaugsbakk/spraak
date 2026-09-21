@@ -35,7 +35,7 @@ public class Analyzer {
       case ExpressionStatement exprStmt -> typeOf(exprStmt.expression);
       case Assignment assignment -> analyzeAssignment(assignment);
       case IdentifierDeclaration decl -> analyzeIdentifierDeclaration(decl);
-      case null, default -> throw new SemanticException("Unrecognized statement");
+      default -> throw new SemanticException(stmt.position, "Unrecognized statement");
     }
   }
 
@@ -50,18 +50,19 @@ public class Analyzer {
     // Ensure the type exists
     // string is the only type implemented, but should look in a type table or something in the future
     if (!declaredType.name().equals("string")) {
-      throw new SemanticException("Unknown type declaration: " + declaredType.name());
+      throw new SemanticException(decl.position, "Unknown type declaration: " + declaredType.name());
     }
 
     // Immutable variables must always be initialized on declaration
     if (!decl.mutable && !initialized) {
-      throw new SemanticException(
+      throw new SemanticException(decl.position,
           "Immutable variable " + decl.identifier + " must be initialized upon declaration.");
     }
 
     // If no initializer, ensure type is nullable
     if (!initialized && !nullable) {
-      throw new SemanticException("Non-nullable type requires initialization");
+      throw new SemanticException(decl.position,
+          "Non-nullable type requires initialization");
     }
 
     // If initializer exists, validate type matches declared type
@@ -83,12 +84,14 @@ public class Analyzer {
 
     // Check existence
     if (symbol == null) {
-      throw new SemanticException("Variable not declared: " + assignment.identifier);
+      throw new SemanticException(assignment.position,
+          "Variable not declared: " + assignment.identifier);
     }
 
     // Check mutability
     if (!symbol.mutable) {
-      throw new SemanticException("Cannot assign to immutable value: " + assignment.identifier);
+      throw new SemanticException(assignment.position,
+          "Cannot assign to immutable value: " + assignment.identifier);
     }
 
     // Type and Nullability Check
@@ -107,12 +110,14 @@ public class Analyzer {
     // skriv() is the only implemented function
     // Should ref. function table in the future
     if (!call.functionName.equals("skriv")) {
-      throw new SemanticException("Function calls are not supported: " + call.functionName);
+      throw new SemanticException(call.position,
+          "Function call is not supported: " + call.functionName);
     }
 
     // Validate argument count
     if (call.arguments.size() != 1) {
-      throw new SemanticException("skriv() supports only one argument");
+      throw new SemanticException(call.position,
+          "skriv() supports only one argument");
     }
 
     // Validate argument types
@@ -120,22 +125,24 @@ public class Analyzer {
       Type argType = typeOf(argument);
 
       if (!argType.name().equals("string")) {
-        throw new SemanticException("skriv() only supports string literals");
+        throw new SemanticException(call.position,
+            "skriv() only supports string literals");
       }
 
       if (argType.nullable()) {
-        throw new SemanticException("Cannot print nullable string: " + argType.name() + "?.");
+        throw new SemanticException(call.position,
+            "Cannot print nullable string: " + argType.name() + "?.");
       }
     }
   }
 
   private void checkAssignable(Type target, Type value) throws SemanticException {
     if (!target.name().equals(value.name())) {
-      throw new SemanticException(
+      throw new SemanticException(null,
           "Type mismatch: expected " + target.name() + ", found " + value.name());
     }
     if (value.nullable() && !target.nullable()) {
-      throw new SemanticException(
+      throw new SemanticException(null,
           "Cannot assign nullable " + value.name() + " to non-nullable " + target.name());
     }
   }
@@ -146,7 +153,7 @@ public class Analyzer {
    */
   private Type typeOf(Expression expr) throws SemanticException {
     switch (expr) {
-      case null -> throw new SemanticException("Expression cannot be null");
+      case null -> throw new SemanticException(expr.position, "Expression cannot be null");
       case StringLiteral _ -> {
         return new Type("string", false);
       }
@@ -154,10 +161,10 @@ public class Analyzer {
         Symbol symbol = symbolTable.get(id.name);
 
         if (symbol == null) {
-          throw new SemanticException("Undeclared identifier: " + id.name);
+          throw new SemanticException(expr.position, "Undeclared identifier: " + id.name);
         }
         if (!symbol.initialized) {
-          throw new SemanticException("Identifier is not initialized: " + id.name);
+          throw new SemanticException(expr.position, "Identifier is not initialized: " + id.name);
         }
 
         return symbol.type;
@@ -170,6 +177,6 @@ public class Analyzer {
       }
     }
 
-    throw new SemanticException("Unknown expression type: " + expr.getClass().getSimpleName());
+    throw new SemanticException(expr.position, "Unknown expression type: " + expr.getClass().getSimpleName());
   }
 }

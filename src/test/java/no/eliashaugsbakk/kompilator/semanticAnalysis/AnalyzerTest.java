@@ -31,17 +31,17 @@ class AnalyzerTest {
   }
 
   private AST buildAST(String functionName, String argument) {
-    FunctionCall call = new FunctionCall(functionName, List.of(new StringLiteral(argument)));
-    ExpressionStatement stmt = new ExpressionStatement(call);
-    Program program = new Program();
+    FunctionCall call = new FunctionCall(null, functionName, List.of(new StringLiteral(null, argument)));
+    ExpressionStatement stmt = new ExpressionStatement(null, call);
+    Program program = new Program(null);
     program.addStatement(stmt);
     return new AST(program);
   }
 
   private AST buildASTNoArgs(String functionName) {
-    FunctionCall call = new FunctionCall(functionName, List.of());
-    ExpressionStatement stmt = new ExpressionStatement(call);
-    Program program = new Program();
+    FunctionCall call = new FunctionCall(null, functionName, List.of());
+    ExpressionStatement stmt = new ExpressionStatement(null, call);
+    Program program = new Program(null);
     program.addStatement(stmt);
     return new AST(program);
   }

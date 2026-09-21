@@ -57,7 +57,7 @@ public class IRGenerator {
     if (assignment.expression instanceof StringLiteral stringLiteral) {
       value = stringLiteral.value;
     } else {
-      throw new IRGenerationException("Only strings are implemented");
+      throw new IRGenerationException(assignment.position, "Only strings are implemented");
     }
     ir.add(new Assign(assignment.identifier, value));
   }
@@ -67,7 +67,7 @@ public class IRGenerator {
     if (identifierDecl.initializer instanceof StringLiteral stringLiteral) {
       value = stringLiteral.value;
     } else {
-      throw new IRGenerationException("Unknown function: " + identifierDecl.initializer);
+      throw new IRGenerationException(identifierDecl.position, "Unknown function: " + identifierDecl.initializer);
     }
     ir.add(new Alloc(identifierDecl.identifier, identifierDecl.type.name(), identifierDecl.mutable,
         value));
@@ -77,7 +77,7 @@ public class IRGenerator {
     if (expr instanceof FunctionCall call) {
       generateFunctionCall(call);
     } else {
-      throw new IRGenerationException("Only expression which can stand alone are functions");
+      throw new IRGenerationException(expr.position, "Only expression which can stand alone are functions");
     }
   }
 
@@ -93,7 +93,7 @@ public class IRGenerator {
       } else if (arg instanceof Identifier identifier) {
         arguments.add(identifier.name);
       } else {
-        throw new IRGenerationException("Unknown function: " + arg);
+        throw new IRGenerationException(fnCall.position, "Unknown function: " + arg);
       }
     });
 

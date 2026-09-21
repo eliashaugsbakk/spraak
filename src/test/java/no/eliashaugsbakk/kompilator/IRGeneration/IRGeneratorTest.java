@@ -11,6 +11,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 import org.junit.jupiter.api.Test;
 
 class IRGeneratorTest {
@@ -27,7 +28,7 @@ class IRGeneratorTest {
 
   @Test
   void multiplePrintStatementsGenerateSequentialTempVars() {
-    Program program = new Program();
+    Program program = new Program(null);
     program.addStatement(buildStatement("skriv", "hello"));
     program.addStatement(buildStatement("skriv", "world"));
 
@@ -45,13 +46,13 @@ class IRGeneratorTest {
   }
 
   private Program buildProgram(String functionName, String argument) {
-    Program program = new Program();
+    Program program = new Program(null);
     program.addStatement(buildStatement(functionName, argument));
     return program;
   }
 
   private ExpressionStatement buildStatement(String functionName, String argument) {
-    FunctionCall call = new FunctionCall(functionName, List.of(new StringLiteral(argument)));
-    return new ExpressionStatement(call);
+    FunctionCall call = new FunctionCall(null, functionName,  List.of(new StringLiteral(null, argument)));
+    return new ExpressionStatement(null, call);
   }
 }

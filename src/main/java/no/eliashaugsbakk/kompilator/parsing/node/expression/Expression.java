@@ -1,6 +1,7 @@
 package no.eliashaugsbakk.kompilator.parsing.node.expression;
 
 import no.eliashaugsbakk.kompilator.parsing.node.ASTNode;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 
 /**
  * Base class for all expression nodes.
@@ -14,4 +15,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.ASTNode;
  * - myFunction()     (function call expression)
  */
 public abstract class Expression extends ASTNode {
+  public Expression(Position position) {
+    super(position);
+  }
 }

@@ -12,6 +12,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 import no.eliashaugsbakk.kompilator.tokenization.Token;
 import org.junit.jupiter.api.Test;
 
@@ -20,11 +21,11 @@ class ParserTest {
   @Test
   void validSyntaxBuildsCorrectTree() throws ParserException {
     List<Token> tokens = List.of(
-        new Token(KEYWORD, "skriv", 1, 0),
-        new Token(LPAREN, "(", 1, 5),
-        new Token(STRING_LITERAL, "Hello", 1, 6),
-        new Token(RPAREN, ")", 1, 13),
-        new Token(SEMICOLON, ";", 1, 14)
+        new Token(KEYWORD, "skriv", new Position(1, 0)),
+        new Token(LPAREN, "(", new Position(1, 5)),
+        new Token(STRING_LITERAL, "Hello", new Position(1, 6)),
+        new Token(RPAREN, ")", new Position(1, 13)),
+        new Token(SEMICOLON, ";", new Position(1, 14))
     );
 
     AST ast = new Parser(tokens).parse();
@@ -47,10 +48,10 @@ class ParserTest {
   @Test
   void missingSemicolonThrows() {
     List<Token> tokens = List.of(
-        new Token(KEYWORD, "print", 1, 0),
-        new Token(LPAREN, "(", 1, 5),
-        new Token(STRING_LITERAL, "Hello", 1, 6),
-        new Token(RPAREN, ")", 1, 13)
+        new Token(KEYWORD, "print", new Position(1, 0)),
+        new Token(LPAREN, "(", new Position(1, 5)),
+        new Token(STRING_LITERAL, "Hello", new Position(1, 6)),
+        new Token(RPAREN, ")", new Position(1, 13))
     );
 
     assertThrows(ParserException.class, () -> new Parser(tokens).parse());
@@ -59,10 +60,10 @@ class ParserTest {
   @Test
   void missingParenthesisThrows() {
     List<Token> tokens = List.of(
-        new Token(KEYWORD, "print", 1, 0),
-        new Token(STRING_LITERAL, "Hello", 1, 5),
-        new Token(RPAREN, ")", 1, 12),
-        new Token(SEMICOLON, ";", 1, 13)
+        new Token(KEYWORD, "print", new Position(1, 0)),
+        new Token(STRING_LITERAL, "Hello", new Position(1, 5)),
+        new Token(RPAREN, ")", new Position(1, 12)),
+        new Token(SEMICOLON, ";", new Position(1, 13))
     );
 
     assertThrows(ParserException.class, () -> new Parser(tokens).parse());

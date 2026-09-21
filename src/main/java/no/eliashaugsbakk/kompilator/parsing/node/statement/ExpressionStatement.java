@@ -1,6 +1,7 @@
 package no.eliashaugsbakk.kompilator.parsing.node.statement;
 
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 
 /**
  * A statement which holds an expression.
@@ -9,7 +10,8 @@ import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
  */
 public class ExpressionStatement extends Statement {
   public final Expression expression;
-  public ExpressionStatement(Expression expression) {
+  public ExpressionStatement(Position position, Expression expression) {
+    super(position);
     this.expression = expression;
   }
 }

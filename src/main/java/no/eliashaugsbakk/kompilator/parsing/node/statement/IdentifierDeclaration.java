@@ -2,6 +2,7 @@ package no.eliashaugsbakk.kompilator.parsing.node.statement;
 
 import no.eliashaugsbakk.kompilator.parsing.Type;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 
 public class IdentifierDeclaration extends Statement {
   // identifier name: [my_var]: type = 4;
@@ -16,7 +17,8 @@ public class IdentifierDeclaration extends Statement {
 
   public final boolean mutable;
 
-  public IdentifierDeclaration(String identifier, Type type, Expression initializer, boolean mutable) {
+  public IdentifierDeclaration(Position position, String identifier, Type type, Expression initializer, boolean mutable) {
+    super(position);
     this.identifier = identifier;
     this.type = type;
     this.initializer = initializer;

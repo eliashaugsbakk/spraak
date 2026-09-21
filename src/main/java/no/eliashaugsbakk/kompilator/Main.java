@@ -43,7 +43,7 @@ public class Main {
     try {
       inputProgram = fileReaderWriter.readFile(inputFileName);
     } catch (FileReaderWriterException e) {
-      IO.println("Could not read input file: " + inputFileName + "\n\n" + e.getMessage());
+      IO.println("err: Could not read input file: " + inputFileName + "\n\n" + e.getMessage());
       System.exit(1);
     }
 
@@ -52,14 +52,14 @@ public class Main {
     try {
       ast = new Parser(tokens).parse();
     } catch (ParserException e) {
-      IO.println("Error while parsing: " + e.getMessage());
+      IO.println(e.getMessage());
       System.exit(1);
     }
 
     try {
       new Analyzer(ast).analyze();
     } catch (SemanticException e) {
-      IO.println("Semantic error: " + e.getMessage());
+      IO.println(e.getMessage());
       System.exit(1);
     }
 

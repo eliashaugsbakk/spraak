@@ -1,6 +1,7 @@
 package no.eliashaugsbakk.kompilator.parsing.node.statement;
 
 import no.eliashaugsbakk.kompilator.parsing.node.ASTNode;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 
 /**
  * Base class for all statement nodes.
@@ -14,4 +15,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.ASTNode;
  * - if (x > 0) { }   (conditional statement)
  */
 public abstract class Statement extends ASTNode {
+  protected Statement(Position position) {
+    super(position);
+  }
 }
