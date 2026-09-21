@@ -28,7 +28,7 @@ public class IRGenerator {
     this.ast = ast;
   }
 
-  public List<Instruction> generate() {
+  public List<Instruction> generate() throws IRGenerationException {
     Program program = (Program) ast.root();
 
     for (Statement stmt : program.statements) {
@@ -42,7 +42,7 @@ public class IRGenerator {
     return ir;
   }
 
-  private void generateStatement(Statement stmt) {
+  private void generateStatement(Statement stmt) throws IRGenerationException {
     if (stmt instanceof ExpressionStatement exprStmt) {
       generateExpression(exprStmt.expression);
     } else if (stmt instanceof Assignment assignment) {
@@ -52,7 +52,7 @@ public class IRGenerator {
     }
   }
 
-  private void generateAssignment(Assignment assignment) {
+  private void generateAssignment(Assignment assignment) throws IRGenerationException {
     String value;
     if (assignment.expression instanceof StringLiteral stringLiteral) {
       value = stringLiteral.value;
@@ -62,7 +62,7 @@ public class IRGenerator {
     ir.add(new Assign(assignment.identifier, value));
   }
 
-  private void generateIdentifierDecl(IdentifierDeclaration identifierDecl) {
+  private void generateIdentifierDecl(IdentifierDeclaration identifierDecl) throws IRGenerationException {
     String value;
     if (identifierDecl.initializer instanceof StringLiteral stringLiteral) {
       value = stringLiteral.value;
@@ -73,7 +73,7 @@ public class IRGenerator {
         value));
   }
 
-  private void generateExpression(Expression expr) {
+  private void generateExpression(Expression expr) throws IRGenerationException {
     if (expr instanceof FunctionCall call) {
       generateFunctionCall(call);
     } else {
@@ -82,10 +82,10 @@ public class IRGenerator {
   }
 
 
-  private void generateFunctionCall(FunctionCall fnCall) {
+  private void generateFunctionCall(FunctionCall fnCall) throws IRGenerationException {
     List<String> arguments = new ArrayList<>();
 
-    fnCall.arguments.forEach(arg -> {
+    for (Expression arg : fnCall.arguments) {
       if (arg instanceof StringLiteral stringLiteral) {
         String temp = "t" + tempCounter++;
         ir.add(new Alloc(temp, "streng", false, stringLiteral.value));
@@ -95,7 +95,7 @@ public class IRGenerator {
       } else {
         throw new IRGenerationException(fnCall.position, "Ukjent funksjon: " + arg);
       }
-    });
+    }
 
     ir.add(new Call(fnCall.functionName, arguments));
   }

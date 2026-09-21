@@ -11,13 +11,12 @@ import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
-import no.eliashaugsbakk.kompilator.tokenization.Position;
 import org.junit.jupiter.api.Test;
 
 class IRGeneratorTest {
 
   @Test
-  void singlePrintStatementGeneratesCorrectIR() {
+  void singlePrintStatementGeneratesCorrectIR() throws IRGenerationException {
     AST ast = buildAST("skriv", "hello");
     List<Instruction> ir = new IRGenerator(ast).generate();
 
@@ -27,7 +26,7 @@ class IRGeneratorTest {
   }
 
   @Test
-  void multiplePrintStatementsGenerateSequentialTempVars() {
+  void multiplePrintStatementsGenerateSequentialTempVars() throws IRGenerationException {
     Program program = new Program(null);
     program.addStatement(buildStatement("skriv", "hello"));
     program.addStatement(buildStatement("skriv", "world"));

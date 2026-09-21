@@ -1,6 +1,8 @@
 package no.eliashaugsbakk.kompilator.asmGeneration;
 
-public class AssemblyBuilderException extends RuntimeException {
+import no.eliashaugsbakk.kompilator.InternalCompilerException;
+
+public class AssemblyBuilderException extends InternalCompilerException {
   public AssemblyBuilderException(String message) {
     super(message);
   }

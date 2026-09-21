@@ -153,7 +153,7 @@ public class Analyzer {
    */
   private Type typeOf(Expression expr) throws SemanticException {
     switch (expr) {
-      case null -> throw new SemanticException(expr.position, "Uttrykket kan ikke være null");
+      case null -> throw new SemanticException(null, "Uttrykket kan ikke være null");
       case StringLiteral _ -> {
         return new Type("streng", false);
       }

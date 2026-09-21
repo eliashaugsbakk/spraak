@@ -24,7 +24,6 @@ import no.eliashaugsbakk.kompilator.parsing.node.statement.Assignment;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.IdentifierDeclaration;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Statement;
-import no.eliashaugsbakk.kompilator.tokenization.Position;
 import no.eliashaugsbakk.kompilator.tokenization.Token;
 
 /*
