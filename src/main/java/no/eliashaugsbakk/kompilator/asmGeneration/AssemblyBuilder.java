@@ -7,12 +7,15 @@ import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Alloc;
 import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Assign;
 import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Call;
 import no.eliashaugsbakk.kompilator.IRGeneration.Instructions.Instruction;
+import no.eliashaugsbakk.kompilator.parsing.DataTypes;
 
 public class AssemblyBuilder {
   final Map<String, StringVar> stringVariables = new HashMap<>();
 
+
   record StringVar(String value, boolean mutable) {
   }
+
 
   final StringBuilder finalAssembly;
   final StringBuilder text;
@@ -84,30 +87,37 @@ public class AssemblyBuilder {
 
   private void handleAllocMut(Alloc alloc) {
     if (alloc.type() == null) {
-      this.bss.append(String.format("""
-          %s: .skip 8
-          """, alloc.name()));
-    } else if (alloc.type().equals("streng")) {
-      String pointer = alloc.name() + "_ptr";
-      this.rodata.append(String.format("""
-          %s: .ascii "%s"
-          """, pointer, alloc.initializer()));
-      this.data.append(String.format("""
-          %s: .quad %s
-          """, alloc.name(), pointer));
-    } else {
-      throw new AssemblyBuilderException("Typen støttes ikke");
+      bss.append(String.format("%s: .skip 8%n", alloc.name()));
+      return;
     }
+
+    DataTypes type = DataTypes.fromName(alloc.type())
+        .orElseThrow(() -> new AssemblyBuilderException("Typen støttes ikke: " + alloc.type()));
+
+    if (type == DataTypes.STRENG) {
+      handleStringAlloc(alloc);
+      return;
+    }
+
+    data.append(String.format("%s: %s %s%n", alloc.name(), directiveFor(type.storageBytes()),
+        alloc.initializer()));
   }
 
   private void handleAllocRO(Alloc alloc) {
-    if (alloc.type().equals("streng")) {
-      this.rodata.append(String.format("""
-          %s: .ascii "%s"
-          """, alloc.name(), alloc.initializer()));
-    } else {
-      throw new AssemblyBuilderException("Typen støttes ikke av skriv");
+    if (DataTypes.fromName(alloc.type()).isEmpty()) {
+      throw new AssemblyBuilderException("Typen støttes ikke som konstant: " + alloc.type());
     }
+    emitString(alloc.name(), alloc.initializer());
+  }
+
+  private void handleStringAlloc(Alloc alloc) {
+    String pointer = alloc.name() + "_ptr";
+    emitString(pointer, alloc.initializer());
+    data.append(String.format("%s: .quad %s%n", alloc.name(), pointer));
+  }
+
+  private void emitString(String label, String value) {
+    rodata.append(String.format("%s: .ascii \"%s\"%n", label, value));
   }
 
   private void handleCall(Call call) {
@@ -128,22 +138,32 @@ public class AssemblyBuilder {
 
     if (var.mutable()) {
       this.text.append(String.format("""
-        mov rsi, [rip + %s]
-        mov rax, 1
-        mov rdi, 1
-        mov rdx, %d
-        syscall
-        
-        """, variableName, stringLength));
+          mov rsi, [rip + %s]
+          mov rax, 1
+          mov rdi, 1
+          mov rdx, %d
+          syscall
+          
+          """, variableName, stringLength));
     } else {
       this.text.append(String.format("""
-        mov rax, 1
-        mov rdi, 1
-        lea rsi, %s
-        mov rdx, %d
-        syscall
-        
-        """, variableName, stringLength));
+          mov rax, 1
+          mov rdi, 1
+          lea rsi, %s
+          mov rdx, %d
+          syscall
+          
+          """, variableName, stringLength));
     }
+  }
+
+  private String directiveFor(int sizeBytes) {
+    return switch (sizeBytes) {
+      case 1 -> ".byte";
+      case 2 -> ".word";
+      case 4 -> ".long";
+      case 8 -> ".quad";
+      default -> throw new AssemblyBuilderException("Ugyldig størrelse: " + sizeBytes);
+    };
   }
 }

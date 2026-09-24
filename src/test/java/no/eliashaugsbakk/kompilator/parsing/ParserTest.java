@@ -1,6 +1,6 @@
 package no.eliashaugsbakk.kompilator.parsing;
 
-import static no.eliashaugsbakk.kompilator.tokenization.TokenType.KEYWORD;
+import static no.eliashaugsbakk.kompilator.tokenization.TokenType.IDENTIFIER;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.LPAREN;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.RPAREN;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.SEMICOLON;
@@ -21,7 +21,7 @@ class ParserTest {
   @Test
   void validSyntaxBuildsCorrectTree() throws ParserException {
     List<Token> tokens = List.of(
-        new Token(KEYWORD, "skriv", new Position(1, 0)),
+        new Token(IDENTIFIER, "skriv", new Position(1, 0)),
         new Token(LPAREN, "(", new Position(1, 5)),
         new Token(STRING_LITERAL, "Hello", new Position(1, 6)),
         new Token(RPAREN, ")", new Position(1, 13)),
@@ -48,7 +48,7 @@ class ParserTest {
   @Test
   void missingSemicolonThrows() {
     List<Token> tokens = List.of(
-        new Token(KEYWORD, "print", new Position(1, 0)),
+        new Token(IDENTIFIER, "print", new Position(1, 0)),
         new Token(LPAREN, "(", new Position(1, 5)),
         new Token(STRING_LITERAL, "Hello", new Position(1, 6)),
         new Token(RPAREN, ")", new Position(1, 13))
@@ -60,7 +60,7 @@ class ParserTest {
   @Test
   void missingParenthesisThrows() {
     List<Token> tokens = List.of(
-        new Token(KEYWORD, "print", new Position(1, 0)),
+        new Token(IDENTIFIER, "print", new Position(1, 0)),
         new Token(STRING_LITERAL, "Hello", new Position(1, 5)),
         new Token(RPAREN, ")", new Position(1, 12)),
         new Token(SEMICOLON, ";", new Position(1, 13))

@@ -1,6 +1,7 @@
 package no.eliashaugsbakk.kompilator.parsing.node.expression;
 
 import java.util.List;
+import no.eliashaugsbakk.kompilator.parsing.BuiltInFunctions;
 import no.eliashaugsbakk.kompilator.parsing.Type;
 import no.eliashaugsbakk.kompilator.tokenization.Position;
 
@@ -18,10 +19,8 @@ public class FunctionCall extends Expression {
   }
 
   public Type getReturnType() {
-    if (functionName.equals("skriv")) {
-      return new Type("void", false);
-    }
-    // TODO: Look up return type in function table when you add more functions
-    return null;
+    return BuiltInFunctions.fromName(functionName)
+        .map(function -> function.signature().returnType())
+        .orElse(null);
   }
 }

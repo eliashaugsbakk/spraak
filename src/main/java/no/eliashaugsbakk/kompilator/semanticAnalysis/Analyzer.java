@@ -1,20 +1,28 @@
 package no.eliashaugsbakk.kompilator.semanticAnalysis;
 
+import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import no.eliashaugsbakk.kompilator.parsing.AST;
+import no.eliashaugsbakk.kompilator.parsing.BuiltInFunctions;
+import no.eliashaugsbakk.kompilator.parsing.DataTypes;
 import no.eliashaugsbakk.kompilator.parsing.Type;
 import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Identifier;
+import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.NumberLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Assignment;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.IdentifierDeclaration;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Statement;
+import no.eliashaugsbakk.kompilator.tokenization.Position;
 
 public class Analyzer {
+  private static final Type DEFAULT_INTEGER_TYPE = new Type("i64", false);
+
   private final AST ast;
   private final Map<String, Symbol> symbolTable = new HashMap<>();
 
@@ -44,13 +52,10 @@ public class Analyzer {
    */
   private void analyzeIdentifierDeclaration(IdentifierDeclaration decl) throws SemanticException {
     boolean initialized = decl.initializer != null;
-    boolean nullable = decl.type.nullable();
-    Type declaredType = decl.type;
 
     // Ensure the type exists
-    // string is the only type implemented, but should look in a type table or something in the future
-    if (!declaredType.name().equals("streng")) {
-      throw new SemanticException(decl.position, "Ukjent type: " + declaredType.name());
+    if (!DataTypes.contains(decl.type.name())) {
+      throw new SemanticException(decl.position, "Ukjent type: " + decl.type.name());
     }
 
     // Immutable variables must always be initialized on declaration
@@ -60,20 +65,19 @@ public class Analyzer {
     }
 
     // If no initializer, ensure type is nullable
-    if (!initialized && !nullable) {
+    if (!initialized && !decl.type.nullable()) {
       throw new SemanticException(decl.position,
           "En type som ikke kan være null, må initialiseres");
     }
 
     // If initializer exists, validate type matches declared type
     if (initialized) {
-      Type implementedType = typeOf(decl.initializer);
-      checkAssignable(declaredType, implementedType);
+      checkValue(decl.initializer, decl.type);
     }
 
     // Shadowing is allowed; do not check to see if the symbol already exists
     symbolTable.put(decl.identifier,
-        new Symbol(decl.identifier, declaredType, decl.mutable, initialized));
+        new Symbol(decl.identifier, decl.type, decl.mutable, initialized));
   }
 
   /**
@@ -95,55 +99,92 @@ public class Analyzer {
     }
 
     // Type and Nullability Check
-    Type assignedType = typeOf(assignment.expression);
-    checkAssignable(symbol.type, assignedType);
+    checkValue(assignment.expression, symbol.type);
 
     // Update symbol state
     symbol.initialized = true;
   }
 
-  /**
-   * Analyzes function call.
-   */
-  private void analyzeFunctionCall(FunctionCall call) throws SemanticException {
-    // Validate function exists
-    // skriv() is the only implemented function
-    // Should ref. function table in the future
-    if (!call.functionName.equals("skriv")) {
+
+  private Type analyzeFunctionCall(FunctionCall call) throws SemanticException {
+    BuiltInFunctions function = BuiltInFunctions.fromName(call.functionName)
+        .orElseThrow(() -> new SemanticException(call.position,
+            "Ukjent funksjon: " + call.functionName));
+
+    List<BuiltInFunctions.Param> expected = function.signature().parameters();
+    if (call.arguments.size() != expected.size()) {
       throw new SemanticException(call.position,
-          "Funksjonskallet støttes ikke: " + call.functionName);
+          call.functionName + "() forventer " + expected.size()
+              + " argument(er), fikk " + call.arguments.size());
     }
 
-    // Validate argument count
-    if (call.arguments.size() != 1) {
-      throw new SemanticException(call.position,
-          "skriv() støtter bare ett argument");
+    for (int i = 0; i < expected.size(); i++) {
+      checkFunctionArgument(call, call.arguments.get(i), expected.get(i), i);
     }
 
-    // Validate argument types
-    for (Expression argument : call.arguments) {
-      Type argType = typeOf(argument);
+    return function.signature().returnType();
+  }
 
-      if (!argType.name().equals("streng")) {
-        throw new SemanticException(call.position,
-            "skriv() støtter bare strengliteraler");
-      }
+  private void checkFunctionArgument(FunctionCall call, Expression argument,
+      BuiltInFunctions.Param parameter, int index) throws SemanticException {
+    Type actual = typeOf(argument);
+    if (argument instanceof NumberLiteral number) {
+      checkNumberFits(number, DEFAULT_INTEGER_TYPE);
+    }
+    if (parameter.accepts().test(actual)) {
+      return;
+    }
 
-      if (argType.nullable()) {
-        throw new SemanticException(call.position,
-            "Kan ikke skrive ut en nullbar streng: " + argType.name() + "?.");
-      }
+    throw new SemanticException(argument.position,
+        call.functionName + "() argument " + (index + 1)
+            + " forventet " + parameter.description() + ", fant " + describe(actual));
+  }
+
+  private String describe(Type type) {
+    return type.nullable() ? type.name() + "?" : type.name();
+  }
+
+  private void checkAssignable(Type target, Type value, Position pos) throws SemanticException {
+    if (value.isAssignableTo(target)) {
+      return;
+    }
+    if (!value.name().equals(target.name())) {
+      throw new SemanticException(pos,
+          "Typekonflikt: forventet " + target.name() + ", fant " + value.name());
+    }
+    throw new SemanticException(pos,
+        "Kan ikke tilordne nullbar " + value.name() + " til ikke-nullbar " + target.name());
+  }
+
+  private void checkNumberFits(NumberLiteral number, Type target) throws SemanticException {
+    DataTypes type = DataTypes.fromName(target.name())
+        .filter(DataTypes::isInteger)
+        .orElseThrow(() -> new SemanticException(number.position,
+            "Typekonflikt: forventet " + target.name() + ", fant tall"));
+
+    if (number.isFloat()) {
+      throw new SemanticException(number.position,
+          "Typekonflikt: forventet " + target.name() + ", fant desimaltall");
+    }
+
+    BigInteger value = new BigInteger(number.value);
+
+    if (value.signum() < 0 && !type.isSigned()) {
+      throw new SemanticException(number.position,
+          "Kan ikke tilordne negativt tall '" + value + "' til '" + type.typeName() + "'");
+    }
+    if (value.compareTo(type.minValue()) < 0 || value.compareTo(type.maxValue()) > 0) {
+      throw new SemanticException(number.position,
+          "Tallet '" + value + "' er utenfor området for '" + type.typeName() + "'"
+              + " (" + type.minValue() + " til " + type.maxValue() + ")");
     }
   }
 
-  private void checkAssignable(Type target, Type value) throws SemanticException {
-    if (!target.name().equals(value.name())) {
-      throw new SemanticException(null,
-          "Typekonflikt: forventet " + target.name() + ", fant " + value.name());
-    }
-    if (value.nullable() && !target.nullable()) {
-      throw new SemanticException(null,
-          "Kan ikke tilordne nullbar " + value.name() + " til ikke-nullbar " + target.name());
+  private void checkValue(Expression expr, Type target) throws SemanticException {
+    if (expr instanceof NumberLiteral number) {
+      checkNumberFits(number, target);
+    } else {
+      checkAssignable(target, typeOf(expr), expr.position);
     }
   }
 
@@ -152,31 +193,34 @@ public class Analyzer {
    * validates sub-expressions, and returns the resulting Type.
    */
   private Type typeOf(Expression expr) throws SemanticException {
-    switch (expr) {
+    return switch (expr) {
       case null -> throw new SemanticException(null, "Uttrykket kan ikke være null");
-      case StringLiteral _ -> {
-        return new Type("streng", false);
-      }
-      case Identifier id -> {
-        Symbol symbol = symbolTable.get(id.name);
+      case StringLiteral _ -> new Type("streng", false);
+      case NumberLiteral number -> typeOfNumberLiteral(number);
+      case Identifier id -> typeOfIdentifier(id);
+      case FunctionCall call -> analyzeFunctionCall(call);
+      default -> throw new SemanticException(expr.position,
+          "Ukjent uttrykkstype: " + expr.getClass().getSimpleName());
+    };
+  }
 
-        if (symbol == null) {
-          throw new SemanticException(expr.position,           "Udeklarert identifikator: " + id.name);
-        }
-        if (!symbol.initialized) {
-          throw new SemanticException(expr.position, "Identifikatoren er ikke initialisert: " + id.name);
-        }
-
-        return symbol.type;
-      }
-      case FunctionCall call -> {
-        analyzeFunctionCall(call);
-        return call.getReturnType();
-      }
-      default -> {
-      }
+  private Type typeOfNumberLiteral(NumberLiteral number) throws SemanticException {
+    if (number.isFloat()) {
+      throw new SemanticException(number.position,
+          "Desimaltall støttes ikke ennå");
     }
+    return DEFAULT_INTEGER_TYPE;
+  }
 
-    throw new SemanticException(expr.position, "Ukjent uttrykkstype: " + expr.getClass().getSimpleName());
+  private Type typeOfIdentifier(Identifier id) throws SemanticException {
+    Symbol symbol = symbolTable.get(id.name);
+    if (symbol == null) {
+      throw new SemanticException(id.position, "Udeklarert identifikator: " + id.name);
+    }
+    if (!symbol.initialized) {
+      throw new SemanticException(id.position,
+          "Identifikatoren er ikke initialisert: " + id.name);
+    }
+    return symbol.type;
   }
 }

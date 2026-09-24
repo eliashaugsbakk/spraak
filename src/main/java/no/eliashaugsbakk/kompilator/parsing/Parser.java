@@ -7,11 +7,11 @@ import static no.eliashaugsbakk.kompilator.tokenization.TokenType.EOF;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.IDENTIFIER;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.KEYWORD;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.LPAREN;
-import static no.eliashaugsbakk.kompilator.tokenization.TokenType.NULLABLE;
+import static no.eliashaugsbakk.kompilator.tokenization.TokenType.NUMBER_LITERAL;
+import static no.eliashaugsbakk.kompilator.tokenization.TokenType.QUESTION;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.RPAREN;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.SEMICOLON;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.STRING_LITERAL;
-import static no.eliashaugsbakk.kompilator.tokenization.TokenType.TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +19,13 @@ import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Identifier;
+import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.NumberLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Assignment;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.IdentifierDeclaration;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Statement;
+import no.eliashaugsbakk.kompilator.tokenization.KeyWords;
 import no.eliashaugsbakk.kompilator.tokenization.Token;
 
 /*
@@ -87,7 +89,6 @@ public class Parser {
     Token token = tokens.get(current);
 
     // implemented keywords:
-    // skriv()
     // set
     // mut
     if (token.type() == KEYWORD) {
@@ -107,17 +108,17 @@ public class Parser {
 
   private Statement parseKeyword() throws ParserException {
     Token token = tokens.get(current);
-    if (token.value().contentEquals("set")) {
-      current++; // consume "set"
-      return parseDeclaration(false);
-    } else if (token.value().contentEquals("mut")) {
-      current++; // consume "mut"
-      return parseDeclaration(true);
-    } else if (token.value().contentEquals("skriv")) {
-      return parseExpressionStatement();
-    } else {
-      throw new ParserException(token.position(), "Ukjent nøkkelord: " + token.value());
-    }
+
+    KeyWords keyword = KeyWords.fromText(token.value())
+        .orElseThrow(() -> new ParserException(token.position(),
+            "Uventet nøkkelord: " + token.value()));
+
+    current++; // consume the keyword
+
+    return switch (keyword) {
+      case SET -> parseDeclaration(false);
+      case MUT -> parseDeclaration(true);
+    };
   }
 
   private ExpressionStatement parseExpressionStatement() throws ParserException {
@@ -147,7 +148,8 @@ public class Parser {
       expectSemicolon();
       return new ExpressionStatement(expr.position, expr);
     } else {
-      throw new ParserException(next.position(), "Uventet symbol etter identifikator: " + next.value());
+      throw new ParserException(next.position(),
+          "Uventet symbol etter identifikator: " + next.value());
     }
   }
 
@@ -175,7 +177,8 @@ public class Parser {
     }
 
     expectSemicolon();
-    return new IdentifierDeclaration(nameToken.position(), identifier, type, initializer, isMutable);
+    return new IdentifierDeclaration(nameToken.position(), identifier, type, initializer,
+        isMutable);
   }
 
   private Statement parseAssignment(String identifier) throws ParserException {
@@ -190,16 +193,20 @@ public class Parser {
 
   private Type parseType() throws ParserException {
     Token token = tokens.get(current);
-    if (token.type() != TYPE) {
-      throw new ParserException(token.position(),
-          "Forventet type, fikk: " + token.value());
+
+    if (token.type() != IDENTIFIER) {
+      throw new ParserException(token.position(), "Forventet type, fant: " + token.value());
     }
+    if (!DataTypes.contains(token.value())) {
+      throw new ParserException(token.position(), "Ukjent type: " + token.value());
+    }
+
     current++;
 
     String typeName = token.value();
     boolean nullable = false;
 
-    if (current < tokens.size() && tokens.get(current).type() == NULLABLE) {
+    if (current < tokens.size() && tokens.get(current).type() == QUESTION) {
       nullable = true;
       current++;
     }
@@ -209,22 +216,30 @@ public class Parser {
 
   private Expression parseExpression() throws ParserException {
     // an expression produces a value and may contain other expressions
-    //  implemented for v0.0.2 are:
-    //  "streng"    - STRING_LITERAL
-    //  my_var      - IDENTIFIER
 
     Token token = tokens.get(current);
     current++;
 
     if (token.type() == STRING_LITERAL) {
       return new StringLiteral(token.position(), token.value());
-    } else if (token.type() == IDENTIFIER || token.type() == KEYWORD) {
-      // could be function call or just identifier reference
+
+    } else if (token.type() == NUMBER_LITERAL) {
+      return new NumberLiteral(token.position(), token.value());
+
+    } else if (token.type() == KEYWORD && BuiltInFunctions.fromName(token.value()).isPresent()) {
+      if (current < tokens.size() && tokens.get(current).type() == LPAREN) {
+        current--;
+        return parseFunctionCall();
+      }
+      throw new ParserException(token.position(), "Forventet '(' etter " + token.value());
+
+    } else if (token.type() == IDENTIFIER) {
       if (current < tokens.size() && tokens.get(current).type() == LPAREN) {
         current--;
         return parseFunctionCall();
       }
       return new Identifier(token.position(), token.value());
+
     } else {
       throw new ParserException(token.position(),
           "Uventet symbol: " + token.value() + ". Forventet et uttrykk");
@@ -243,8 +258,7 @@ public class Parser {
     List<Expression> arguments = new ArrayList<>();
 
     if (tokens.get(current).type() != LPAREN) {
-      throw new ParserException(tokens.get(current).position(),
-          "Forventet (");
+      throw new ParserException(tokens.get(current).position(), "Forventet (");
     }
     current++;  // skip (
 
@@ -257,8 +271,7 @@ public class Parser {
     }
 
     if (current >= tokens.size() || tokens.get(current).type() != RPAREN) {
-      throw new ParserException(tokens.get(current).position(),
-          "Forventet )");
+      throw new ParserException(tokens.get(current).position(), "Forventet )");
     }
     current++;  // skip )
 
@@ -269,8 +282,7 @@ public class Parser {
     if (current >= tokens.size()) {
       throw new ParserException(null, "Forventet ;");
     } else if (tokens.get(current).type() != SEMICOLON) {
-      throw new ParserException(tokens.get(current).position(),
-          "Forventet: ;");
+      throw new ParserException(tokens.get(current).position(), "Forventet: ;");
     }
     current++;
   }

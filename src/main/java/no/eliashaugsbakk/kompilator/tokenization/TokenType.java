@@ -1,16 +1,25 @@
 package no.eliashaugsbakk.kompilator.tokenization;
 
 public enum TokenType {
-  KEYWORD,          // print, var, if, while, function, etc.
-  IDENTIFIER,       // variable_1
+  // Keywords
+  KEYWORD,          // var, if, while, etc.
+
+  // Identifiers & Built-in Literals
+  IDENTIFIER,       // skriv, my_function, my_variable (resolved in semantic analysis)
   STRING_LITERAL,   // "Hello, World!"
-  COLON,            // : (set x[:] int = ...)
-  TYPE,             // streng, i32, i16?, my_type, ... (? makes nullable)
+  NUMBER_LITERAL,   // 3, -8, 3.14
+
+  // Operators & Symbols
   ASSIGN,           // =
-  NULLABLE,         // ? (x = streng?;)
-  LPAREN,           // (
-  RPAREN,           // )
+  COLON,            // :
+  QUESTION,         // ?
   SEMICOLON,        // ;
   COMMA,            // ,
+  LPAREN,           // (
+  RPAREN,           // )
+  PLUS,             // +
+  MINUS,            // -
+
+  // Special
   EOF               // End of File
 }

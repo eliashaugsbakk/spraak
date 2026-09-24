@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import no.eliashaugsbakk.kompilator.IO.File;
 import no.eliashaugsbakk.kompilator.IO.FileReaderWriter;
-import no.eliashaugsbakk.kompilator.IO.FileReaderWriterException;
 import no.eliashaugsbakk.kompilator.CompilationException;
 import no.eliashaugsbakk.kompilator.Main;
 

@@ -1,10 +1,10 @@
 package no.eliashaugsbakk.kompilator.tokenization;
 
 import static java.lang.Character.isLetterOrDigit;
+import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_NUMBER;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_MULTI_LINE_COMMENT;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_SINGLE_LINE_COMMENT;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_STRING;
-import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_TYPE;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.IN_WORD;
 import static no.eliashaugsbakk.kompilator.tokenization.LexerState.NORMAL;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.ASSIGN;
@@ -14,11 +14,9 @@ import static no.eliashaugsbakk.kompilator.tokenization.TokenType.EOF;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.IDENTIFIER;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.KEYWORD;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.LPAREN;
-import static no.eliashaugsbakk.kompilator.tokenization.TokenType.NULLABLE;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.RPAREN;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.SEMICOLON;
 import static no.eliashaugsbakk.kompilator.tokenization.TokenType.STRING_LITERAL;
-import static no.eliashaugsbakk.kompilator.tokenization.TokenType.TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,14 +53,14 @@ public class Lexer {
 
       if (state == IN_WORD) {
         inWord();
-      } else if (state == IN_TYPE) {
-        inType();
       } else if (state == IN_STRING) {
         inString();
       } else if (state == IN_SINGLE_LINE_COMMENT) {
         inSingleLineComment();
       } else if (state == IN_MULTI_LINE_COMMENT) {
         inMultiLineComment();
+      } else if (state == IN_NUMBER) {
+        inNumber();
       }
 
       if (state == NORMAL) {
@@ -70,6 +68,10 @@ public class Lexer {
       }
 
       position++;
+    }
+
+    if (state == IN_NUMBER) {
+      emitNumber(1);
     }
 
     tokens.add(new Token(EOF, "Filslutt", new Position(line, column)));
@@ -95,14 +97,14 @@ public class Lexer {
       }
     } else if (current == '"') {
       state = IN_STRING;
+    } else if (current == '-' || Character.isDigit(current)) {
+      state = IN_NUMBER;
+      wordBuffer.append(current);
     } else if (isWordCharacter(current)) {
       state = IN_WORD;
       wordBuffer.append(current);
     } else if (current == ':') {
       tokens.add(new Token(COLON, ":", new Position(line, column)));
-      state = IN_TYPE;
-      position++; // Skip whitespace
-
     } else if (current == '=') {
       tokens.add(new Token(ASSIGN, "=", new Position(line, column)));
     } else if (current == '(') {
@@ -120,24 +122,6 @@ public class Lexer {
     return isLetterOrDigit(current) || current == '_';
   }
 
-  private void inType() {
-
-    if (current == '?') {
-      state = NORMAL;
-      tokens.add(
-          new Token(TYPE, wordBuffer.toString(), new Position(line, column - wordBuffer.length())));
-      tokens.add(new Token(NULLABLE, "?", new Position(line, column)));
-      clearWordBuffer();
-    } else if (Character.isWhitespace(current) || current == '=' || current == ';') {
-      state = NORMAL;
-      tokens.add(
-          new Token(TYPE, wordBuffer.toString(), new Position(line, column - wordBuffer.length())));
-      clearWordBuffer();
-    } else {
-      wordBuffer.append(current);
-    }
-  }
-
   private void inString() {
     if (current == '"') {
       tokens.add(new Token(STRING_LITERAL, wordBuffer.toString(), new Position(line, column)));
@@ -145,6 +129,7 @@ public class Lexer {
       state = NORMAL;
       position++; // skip closing "
       current = input.charAt(position);
+
     } else if (current == '\\' && position + 1 < input.length()) {
       // The source file contains \n as two characters: '\' and 'n'.
       // We intercept the backslash and emit the character it represents.
@@ -172,17 +157,11 @@ public class Lexer {
   }
 
   private void characterizeWord() {
-    if (Keywords.KEYWORDS.contains(wordBuffer.toString())) {
-      if (wordBuffer.toString().contentEquals("set")) {
-        tokens.add(new Token(KEYWORD, "set", new Position(line, column)));
-      } else if (wordBuffer.toString().contentEquals("mut")) {
-        tokens.add(new Token(KEYWORD, "mut", new Position(line, column)));
-      } else {
-        // this is a function call
-        tokens.add(new Token(KEYWORD, wordBuffer.toString(),
-            new Position(line, column - wordBuffer.length())));
-      }
+    if (KeyWords.contains(wordBuffer.toString())) {
+      // This is a known keyword
+      tokens.add(new Token(KEYWORD, wordBuffer.toString(), new Position(line, column)));
     } else {
+      // This is an identifier
       tokens.add(new Token(IDENTIFIER, wordBuffer.toString(),
           new Position(line, column - wordBuffer.length())));
     }
@@ -205,5 +184,24 @@ public class Lexer {
         state = NORMAL;
       }
     }
+  }
+
+  private void inNumber() {
+    if (current == '_') {
+      // Ignore underscores in numbers
+      return;
+    }
+    if (!Character.isDigit(current) && current != '.') {
+      state = NORMAL;
+      emitNumber(0);
+    } else {
+      wordBuffer.append(current);
+    }
+  }
+
+  private void emitNumber(int endOfInputOffset) {
+    tokens.add(new Token(TokenType.NUMBER_LITERAL, wordBuffer.toString(),
+        new Position(line, column - wordBuffer.length() + endOfInputOffset)));
+    clearWordBuffer();
   }
 }

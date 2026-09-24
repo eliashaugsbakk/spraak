@@ -12,6 +12,7 @@ import no.eliashaugsbakk.kompilator.parsing.node.Program;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Expression;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.FunctionCall;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.Identifier;
+import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.NumberLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.expression.literal.StringLiteral;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.Assignment;
 import no.eliashaugsbakk.kompilator.parsing.node.statement.ExpressionStatement;
@@ -66,6 +67,8 @@ public class IRGenerator {
     String value;
     if (identifierDecl.initializer instanceof StringLiteral stringLiteral) {
       value = stringLiteral.value;
+    } else if (identifierDecl.initializer instanceof NumberLiteral numberLiteral) {
+        value = numberLiteral.value;
     } else {
       throw new IRGenerationException(identifierDecl.position, "Ukjent funksjon: " + identifierDecl.initializer);
     }
